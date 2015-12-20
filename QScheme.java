@@ -92,6 +92,10 @@ class QScheme {
 	reader0 = new QSreader();
 	reader0.parse("(1 (a c d) 3)");
 	System.out.println("root=" + reader0.root);
+
+	QSpair pair0 = (QSpair)(reader0.root);
+	QSlist lis0 = QSlist.fromPair(pair0);
+	System.out.println("root=" + lis0);
     }
 
     static public void main (String argv[])
