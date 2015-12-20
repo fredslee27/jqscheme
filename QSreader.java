@@ -80,6 +80,13 @@ public class QSreader {
     protected boolean isWhitespace (char ch) { return WHITESPACE.indexOf(ch) > -1; }
     protected boolean isComment (char ch) { return COMMENT.indexOf(ch) > -1; }
     protected boolean isEndOfLine (char ch) { return EOL.indexOf(ch) > -1; }
+    protected boolean isSymbolic (char ch) {
+	if (isListOpen(ch)) return false;
+	if (isListClose(ch)) return false;
+	if (isWhitespace(ch)) return false;
+	if (isComment(ch)) return false;
+	return true;
+    }
 
 
     // Given a string, parse one object out of it, returning the remainder/unconsumed string.
@@ -153,7 +160,7 @@ public class QSreader {
 		    } else if (isWhitespace(ch)) {
 			toktype = TokenType.SYMBOL;
 			parse = ParserState.INIT;
-		    } else if (isListOpen(ch) || isListClose(ch)) {
+		    } else if (! isSymbolic(ch)) {
 			toktype = TokenType.SYMBOL;
 			parse = ParserState.INIT;
 			consumed--;
