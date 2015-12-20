@@ -57,6 +57,7 @@ public class QSreader {
     StringBuilder tokval;
     Stack<BuildContext> build;
     QSobj root;
+    int crumbs;
 
     public QSreader () {
 	parse = ParserState.INIT;
@@ -65,6 +66,16 @@ public class QSreader {
 	tokval = new StringBuilder();
 	build = new Stack<BuildContext>();
 	root = null;
+
+	crumbs = 0;
+    }
+
+    void setLogLevel (int n) { crumbs = n; }
+    void crumb (int thresholdLevel, String msg)
+    {
+	if (thresholdLevel <= crumbs) {
+	    System.out.println(msg);
+	}
     }
 
     static private String LIST_OPEN = "(";
@@ -102,7 +113,8 @@ public class QSreader {
 
 //	while (ch != 0) {
 	while (parse != ParserState.DONE) {
-	    System.out.println("Parser state=" + parse + ", tokval=" + tokval.toString() + ", ch=" + (int)ch + "/" + ch);
+	    //System.out.println("Parser state=" + parse + ", tokval=" + tokval.toString() + ", ch=" + (int)ch + "/" + ch);
+	    crumb(1, "Parser state=" + parse + ", tokval=" + tokval.toString() + ", ch=" + (int)ch + "/" + ch);
 
 	    switch (parse) {
 		case INIT:
@@ -188,22 +200,23 @@ public class QSreader {
 			    i = 0;
 			}
 			val = new QSinteger(i);
-			System.out.println("token.int: " + i);
+			//System.out.println("token.int: " + i);
+			crumb(1, "token.int: " + i);
 			break;
 		    case SYMBOL:
 		    	if (token == "#t") {
 			    val = new QSbool(true);
-			    System.out.println("token.true");
+			    crumb(1, "token.true");
 			} else if (token == "#f") {
 			    val = new QSbool(false);
-			    System.out.println("token.false");
+			    crumb(1, "token.false");
 			} else {
 			    val = QSobj.intern(token);
-			    System.out.println("token.symbol: " + val);
+			    crumb(1, "token.symbol: " + val);
 			}
 			break;
 		    case LIST_OPEN:
-		    	System.out.println("LIST OPEN");
+		    	crumb(1, "LIST OPEN");
 			// create new pair, push.
 			BuildContext ctx = new BuildContext();
 			ctx.root = null;
@@ -212,7 +225,7 @@ public class QSreader {
 			toktype = TokenType.NONE;
 			break;
 		    case LIST_CLOSE:
-		    	System.out.println("LIST CLOSE");
+		    	crumb(1, "LIST CLOSE");
 			ctx = build.pop();
 			val = ctx.root;
 			if (val == null)
@@ -238,7 +251,7 @@ public class QSreader {
 		    } else {
 			// no (more) nested build, toplevel object.
 			root = val;
-			System.out.println("setting root to " + root);
+			crumb(1, "setting root to " + root);
 		    }
 		}
 
