@@ -34,15 +34,16 @@ interface IQSprimitive {
 
 class QSobj extends Object implements IQSobj {
 //  static TreeSet<QSsym> symtree = null;
-    static QSsymtree symtree;
-    static QSprimreg primreg;
+    static QSsymtree symtree = null;
+    static QSprimreg primreg = null;
 
     public QSobj () {
         if (symtree == null) {
-            //symtree = new TreeSet<QSsym>();
-            //symtree = new TreeMap<String,QSsym>();
-	    symtree = new QSsymtree();
+	    build_symtree();
         }
+	if (primreg == null) {
+	    build_primreg();
+	}
     }
     @Override public String repr () throws Exception { return "#<QSobject>"; }
     @Override public String toString () {
@@ -50,6 +51,19 @@ class QSobj extends Object implements IQSobj {
 	    return repr();
 	} catch (Exception e) {
 	    return "{EXCEPTION " + e + "}";
+	}
+    }
+
+    static protected void build_symtree () {
+	if (symtree == null) {
+            //symtree = new TreeSet<QSsym>();
+            //symtree = new TreeMap<String,QSsym>();
+	    symtree = new QSsymtree();
+	}
+    }
+    protected void build_primreg () {
+	if (primreg == null) {
+	    primreg = new QSprimreg();
 	}
     }
 
@@ -118,6 +132,9 @@ class QSobj extends Object implements IQSobj {
     public boolean isPair() { return (this instanceof QSpair); }
 
     static public QSsym intern (String symname) {
+	if (symtree == null) {
+	    build_symtree();
+	}
 	return symtree.intern(symname);
     }
     static public QSobj make () { return new QSnull(); }
@@ -145,7 +162,8 @@ class QSobj extends Object implements IQSobj {
 
 class QSnull extends QSobj {
     public QSnull () { }
-    @Override public String repr () { return "'()"; }
+    //@Override public String repr () { return "'()"; }
+    @Override public String repr () { return "()"; }
 };
 
 class QSbool extends QSobj {
@@ -229,18 +247,37 @@ class QSpair extends QSobj {
         a = inita;
         d = initd;
     }
-    public QSobj car () {
-        return a;
-    }
-    public QSobj cdr () {
-        return d;
-    }
-    void setcar (QSobj v) {
-        if (true) a = v;
-    }
-    void setcdr (QSobj v) {
-        if (true) d = v;
-    }
+    public QSobj car () { return a; }
+    public QSobj cdr () { return d; }
+    void setcar (QSobj v) { if (true) a = v; }
+    void setcdr (QSobj v) { if (true) d = v; }
+    @Override public String toString () {
+	StringBuilder temp = new StringBuilder();
+	temp.append("(");
+	QSobj iter = this;
+	while (iter != null) {
+	    if (! (iter == this)) {
+		temp.append(" ");
+	    }
+	    if (iter instanceof QSpair) {
+		QSpair visitor = (QSpair)iter;
+		// proper list; stringify and advance.
+		if (visitor.car() != null) {
+		    temp.append(visitor.car().toString());
+		} else {
+		    temp.append("()");
+		}
+		iter = visitor.cdr();
+	    } else {
+		// end of improper list.
+		temp.append(" . ");
+		temp.append(iter.toString());
+		iter = null;
+	    }
+	}
+	temp.append(")");
+	return temp.toString();
+    };
 };
 
 
