@@ -1,3 +1,5 @@
+package local.fredslee;
+
 class QScheme {
     static QSmachine mach;
 

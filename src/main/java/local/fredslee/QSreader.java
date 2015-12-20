@@ -1,3 +1,4 @@
+package local.fredslee;
 
 /* Bootstrapping (minimalist) Scheme reader.
 Intended to bootstrap into a proper Scheme reader written in Scheme (going meta).

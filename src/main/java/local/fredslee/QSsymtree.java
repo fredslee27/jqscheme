@@ -1,3 +1,4 @@
+package local.fredslee;
 
 /* Collection of all symbols, help assign unique symbol id. */
 

@@ -1,3 +1,4 @@
+package local.fredslee;
 
 /*
 Scheme machine:

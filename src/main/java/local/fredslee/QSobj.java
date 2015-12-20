@@ -1,3 +1,5 @@
+package local.fredslee;
+
 /* Scheme objects
 
 * null
