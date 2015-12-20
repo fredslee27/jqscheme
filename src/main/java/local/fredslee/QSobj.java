@@ -184,7 +184,7 @@ class QSchar extends QSobj {
     char c;
     public QSchar (char initc) { c = initc; }
     public Character Character () { return Character.valueOf(c); }
-    @Override public String repr () { return "\\#" + c; }
+    @Override public String repr () { return "#\\" + c; }
 };
 
 class QSstr extends QSobj {
@@ -236,7 +236,22 @@ class QSvec extends QSobj {
     }
     public void fill (QSobj v) {for(int i=0;i<data.length;i++){data[i]=v;}}
     @Override public String repr () {
-        return "#<vector " + data.length + ">";
+//        return "#<vector " + data.length + ">";
+	StringBuilder ss = new StringBuilder();
+	ss.append("#(");
+	for (int i = 0; i < length(); i++) {
+	    if (i != 0) {
+		ss.append(" ");
+	    }
+	    QSobj elt = get(i);
+	    if (elt != null) {
+		ss.append(elt.toString());
+	    } else {
+		ss.append("()");
+	    }
+	}
+	ss.append(")");
+	return ss.toString();
     }
 }
 
@@ -280,7 +295,7 @@ class QSpair extends QSobj {
 		iter = visitor.cdr();
 	    } else {
 		// end of improper list.
-		temp.append(" . ");
+		temp.append(". ");
 		temp.append(iter.toString());
 		iter = null;
 	    }

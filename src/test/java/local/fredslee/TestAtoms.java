@@ -60,5 +60,20 @@ public class TestAtoms
 	System.out.println("# char");
 	apply(QSobj.make('@'), "#\\@");
 
+	System.out.println("# number");
+	apply(QSobj.make(42), "42");
+	apply(QSobj.make(-1.25), Double.toString(-1.25));
+	apply(QSobj.make(2,3), "2/3");
+	apply(QSobj.make(0,0.1), Double.toString(0) + "+" + Double.toString(0.1) + "i");
+
+	System.out.println("# string");
+	apply(QSobj.make("foobar"), "\"foobar\"");
+	apply(QSobj.make("lorem ipsum dolor sit amet"), "\"lorem ipsum dolor sit amet\"");
+
+	System.out.println("# vector");
+	apply(QSobj.vec(2), "#(() ())");
+
+	System.out.println("# list");
+	apply(new QSpair(QSobj.make(17), QSobj.make(48)), "(17 . 48)");
     }
 }
