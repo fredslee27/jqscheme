@@ -52,7 +52,7 @@ class QScheme {
 	System.out.println("obj0 = " + obj0.dump());
 
 	QSobj pair0;
-	pair0 = new QSpair(new QSinteger(17), new QSinteger(37));
+	pair0 = new QScons(new QSinteger(17), new QSinteger(37));
 	System.out.println("pair0 = " + pair0.dump());
 	pair0 = QSobj.cons(QSobj.make(18), QSobj.make(38));
 	System.out.println("pair0 = " + pair0.dump());
@@ -95,7 +95,7 @@ class QScheme {
 	reader0.parse("(1 (a c d) 3)");
 	System.out.println("root=" + reader0.root);
 
-	QSpair pair0 = (QSpair)(reader0.root);
+	QScons pair0 = (QScons)(reader0.root);
 	QSlist lis0 = QSlist.fromPair(pair0);
 	System.out.println("root=" + lis0);
     }

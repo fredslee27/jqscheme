@@ -239,7 +239,8 @@ public class QSreader {
 		    // attach val to build, or set to root.
 		    if (build.size() > 0) {
 			BuildContext ctx = build.peek();
-			QSpair next = new QSpair(val, null);
+			//QSpair next = new QScons(val, null);
+			QSpair next = QSobj.cons(val, null);
 			if (ctx.root == null) {
 			    // build new.
 			    ctx.root = ctx.last = next;
