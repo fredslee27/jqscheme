@@ -22,7 +22,7 @@ public class QSarith {
 	NAN,
     };
 
-    static public int evalInt (QSobj a)
+    static public int evalInt (QSnumber a)
     {
 	if (QSinteger.p(a)) { return ((QSinteger)a).Integer(); }
 	else if (QSreal.p(a)) { return ((QSreal)a).Double().intValue(); }
@@ -37,7 +37,7 @@ public class QSarith {
 	}
 	return 0;
     }
-    static public double evalDouble (QSobj a)
+    static public double evalDouble (QSnumber a)
     {
 	if (QSinteger.p(a)) { return ((QSinteger)a).Integer().doubleValue(); }
 	else if (QSreal.p(a)) { return ((QSreal)a).Double().doubleValue(); }
@@ -52,7 +52,7 @@ public class QSarith {
 	}
 	return 0;
     }
-    static public int[] evalInts (QSobj a)
+    static public int[] evalInts (QSnumber a)
     {
 	if (QSinteger.p(a)) { return new int[]{evalInt(a), 1}; }
 	else if (QSreal.p(a)) { return new int[]{evalInt(a), 1}; }  // TODO: approximate fraction.
@@ -66,7 +66,7 @@ public class QSarith {
 	}
 	return new int[]{0,1};
     }
-    static public double[] evalDoubles (QSobj a)
+    static public double[] evalDoubles (QSnumber a)
     {
 	if (QScomplex.p(a)) {
 	    Double[] z = ((QScomplex)a).Doubles();
@@ -93,9 +93,8 @@ public class QSarith {
 	//return QSnumber.NumCmp.NC;
     }
 */
-    static public QSnumber add (QSobj a, QSobj b)
+    static public QSnumber add (QSnumber a, QSnumber b)
     {
-	if ( (!QSnumber.p(a)) || (!QSnumber.p(b)) ) return NaN;
 	QSnumber retval = NaN;
 	NumType ansType = NumType.NAN;
 	if (QSinteger.p(a))
@@ -158,9 +157,8 @@ public class QSarith {
 	return retval;
     }
 
-    static public QSnumber sub (QSobj a, QSobj b)
+    static public QSnumber sub (QSnumber a, QSnumber b)
     {
-	if ( (!QSnumber.p(a)) || (!QSnumber.p(b)) ) return NaN;
 	QSnumber retval = NaN;
 	NumType ansType = NumType.NAN;
 	if (QSinteger.p(a))
@@ -223,9 +221,8 @@ public class QSarith {
 	return retval;
     }
 
-    static public QSnumber mul (QSobj a, QSobj b)
+    static public QSnumber mul (QSnumber a, QSnumber b)
     {
-	if ( (!QSnumber.p(a)) || (!QSnumber.p(b)) ) return NaN;
 	QSnumber retval = NaN;
 	NumType ansType = NumType.NAN;
 	if (QSinteger.p(a))
@@ -291,7 +288,7 @@ public class QSarith {
     }
 
     // integer-theroetical operation.
-    static private int[] _divmod (QSobj a, QSobj b)
+    static private int[] _divmod (QSnumber a, QSnumber b)
     {
 	int[] retval = { 0, 0 };
 	if (!QSinteger.p(a)) return retval;
@@ -304,7 +301,7 @@ public class QSarith {
 	return retval;
     }
 
-    static public QSnumber mod (QSobj a, QSobj b)
+    static public QSnumber mod (QSnumber a, QSnumber b)
     {
 	QSnumber retval = null;
 	NumType ansType = NumType.NAN;
@@ -331,9 +328,8 @@ public class QSarith {
 	return retval;
     }
 
-    static public QSnumber div (QSobj a, QSobj b)
+    static public QSnumber div (QSnumber a, QSnumber b)
     {
-	if ( (!QSnumber.p(a)) || (!QSnumber.p(b)) ) return NaN;
 	QSnumber retval = NaN;
 	NumType ansType = NumType.NAN;
 	if (QSinteger.p(a))
@@ -404,11 +400,9 @@ public class QSarith {
 	return retval;
     }
 
-    static public QSnumber abs (QSobj obj)
+    static public QSnumber abs (QSnumber a)
     {
 	QSnumber retval = QSnumber.NaN;
-	if (!QSnumber.p(obj)) return retval;
-	QSnumber a = (QSnumber)obj;
 	if (QSinteger.p(a))
 	{
 	    retval = QSinteger.make(Math.abs(a.asInt().Integer().intValue()));
@@ -432,11 +426,9 @@ public class QSarith {
 
 
     // e**obj
-    static public QSnumber exp (QSobj obj)
+    static public QSnumber exp (QSnumber a)
     {
 	QSnumber retval = NaN;
-	if (!QSnumber.p(obj)) return retval;
-	QSnumber a = (QSnumber)obj;
 	if (a.isInteger() || a.isReal() || a.isRational())
 	{
 	    double z = evalDouble(a);
@@ -450,11 +442,9 @@ public class QSarith {
 	return retval;
     }
     // ln(obj)
-    static public QSnumber log (QSobj obj)
+    static public QSnumber log (QSnumber a)
     {
 	QSnumber retval = NaN;
-	if (!QSnumber.p(obj)) return retval;
-	QSnumber a = (QSnumber)obj;
 	if (a.isInteger() || a.isReal() || a.isRational())
 	{
 	    double z = evalDouble(a);
@@ -468,11 +458,9 @@ public class QSarith {
 	return retval;
     }
     // sin(obj)
-    static public QSnumber sin (QSobj obj)
+    static public QSnumber sin (QSnumber a)
     {
 	QSnumber retval = NaN;
-	if (!QSnumber.p(obj)) return retval;
-	QSnumber a = (QSnumber)obj;
 	if (a.isInteger() || a.isReal() || a.isRational())
 	{
 	    double z = evalDouble(a);
@@ -486,11 +474,9 @@ public class QSarith {
 	return retval;
     }
     // cos(obj)
-    static public QSnumber cos (QSobj obj)
+    static public QSnumber cos (QSnumber a)
     {
 	QSnumber retval = NaN;
-	if (!QSnumber.p(obj)) return retval;
-	QSnumber a = (QSnumber)obj;
 	if (a.isInteger() || a.isReal() || a.isRational())
 	{
 	    double z = evalDouble(a);
@@ -504,11 +490,9 @@ public class QSarith {
 	return retval;
     }
     // tan(obj)
-    static public QSnumber tan (QSobj obj)
+    static public QSnumber tan (QSnumber a)
     {
 	QSnumber retval = NaN;
-	if (!QSnumber.p(obj)) return retval;
-	QSnumber a = (QSnumber)obj;
 	if (a.isInteger() || a.isReal() || a.isRational())
 	{
 	    double z = evalDouble(a);
@@ -522,11 +506,9 @@ public class QSarith {
 	return retval;
     }
     // asin(obj)
-    static public QSnumber asin (QSobj obj)
+    static public QSnumber asin (QSnumber a)
     {
 	QSnumber retval = NaN;
-	if (!QSnumber.p(obj)) return retval;
-	QSnumber a = (QSnumber)obj;
 	if (a.isInteger() || a.isReal() || a.isRational())
 	{
 	    double z = evalDouble(a);
@@ -540,11 +522,9 @@ public class QSarith {
 	return retval;
     }
     // acos(obj)
-    static public QSnumber acos (QSobj obj)
+    static public QSnumber acos (QSnumber a)
     {
 	QSnumber retval = NaN;
-	if (!QSnumber.p(obj)) return retval;
-	QSnumber a = (QSnumber)obj;
 	if (a.isInteger() || a.isReal() || a.isRational())
 	{
 	    double z = evalDouble(a);
@@ -558,11 +538,9 @@ public class QSarith {
 	return retval;
     }
     // atan(obj)
-    static public QSnumber atan (QSobj obj)
+    static public QSnumber atan (QSnumber a)
     {
 	QSnumber retval = NaN;
-	if (!QSnumber.p(obj)) return retval;
-	QSnumber a = (QSnumber)obj;
 	if (a.isInteger() || a.isReal() || a.isRational())
 	{
 	    double z = evalDouble(a);
@@ -576,13 +554,9 @@ public class QSarith {
 	return retval;
     }
     // atan2(obj1, obj2)
-    static public QSnumber atan2 (QSobj obj1, QSobj obj2)
+    static public QSnumber atan2 (QSnumber a, QSnumber b)
     {
 	QSnumber retval = NaN;
-	if (!QSnumber.p(obj1)) return retval;
-	if (!QSnumber.p(obj2)) return retval;
-	QSnumber a = (QSnumber)obj1;
-	QSnumber b = (QSnumber)obj2;
 	if (a.isInteger() || a.isReal() || a.isRational())
 	{
 	    double y = evalDouble(a);
@@ -598,11 +572,9 @@ public class QSarith {
     }
 
 
-    static public QSnumber sqrt (QSobj obj)
+    static public QSnumber sqrt (QSnumber a)
     {
 	QSnumber retval = NaN;
-	if (!QSnumber.p(obj)) return retval;
-	QSnumber a = (QSnumber)obj;
 	if (a.isInteger())
 	{
 	    int i = evalInt(a);
@@ -637,13 +609,9 @@ public class QSarith {
 	return retval;
     }
 
-    static public QSnumber expt (QSobj obj1, QSobj obj2)
+    static public QSnumber expt (QSnumber a, QSnumber b)
     {
 	QSnumber retval = NaN;
-	if (!QSnumber.p(obj1)) return retval;
-	if (!QSnumber.p(obj2)) return retval;
-	QSnumber a = (QSnumber)obj1;
-	QSnumber b = (QSnumber)obj2;
 	if (a.isInteger() && b.isInteger())
 	{
 	    // integer exponentiation.
@@ -658,19 +626,18 @@ public class QSarith {
 	else if (b.isRational())
 	{
 	    // TODO: exponentiation and rooting.
-	    double x = evalDouble(obj1), y = evalDouble(obj2);
+	    double x = evalDouble(a), y = evalDouble(b);
 	    double ans = Math.pow(x, y);
 	    retval = QSreal.make(ans);
 	}
 	else
 	{
-	    double x = evalDouble(obj1), y = evalDouble(obj2);
+	    double x = evalDouble(a), y = evalDouble(b);
 	    double ans = Math.pow(x, y);
 	    retval = QSreal.make(ans);
 	}
 	return retval;
     }
 };
-
 
 

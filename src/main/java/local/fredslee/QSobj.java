@@ -567,7 +567,7 @@ class QSnumber extends QSobj {
 	else if (QScomplex.p(a)) return ((QScomplex)a).sign();
 	return NumCmp.NC;
     }
-    static public NumCmp cmp (QSobj a, QSobj b)
+    static public NumCmp cmp (QSnumber a, QSnumber b)
     {
 	QSnumber test = QSarith.sub(a,b);
 	NumCmp retval = sign(test);
