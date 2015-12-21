@@ -535,14 +535,6 @@ class QSnumber extends QSobj {
 	EQ,
 	GT,
     };
-    enum NumType {
-	INTEGER,
-	REAL,
-	RATIONAL,
-	COMPLEX,
-	INF,
-	NAN,
-    };
     public boolean isNumber () { return true; }
     public boolean isInteger() { return false; }
     public boolean isReal() { return false; }
@@ -554,6 +546,11 @@ class QSnumber extends QSobj {
 	throw new Exception("(Number base class)");
     }
 
+    public QSinteger asInt () { return (QSinteger)this; }
+    public QSreal asReal () { return (QSreal)this; }
+    public QSrational asRational() { return (QSrational)this; }
+    public QScomplex asComplex() { return (QScomplex)this; }
+
     static public boolean p (QSobj x) { return ((x != null) && (x instanceof QSnumber)); }
     static public QSnumber make (int i) { return new QSinteger(i); }
     static public QSnumber make (double f) { return new QSreal(f); }
@@ -561,59 +558,6 @@ class QSnumber extends QSobj {
     static public QSnumber make (double a, double b) { return new QScomplex(a,b); }
     static public QSnumber nan () { return NaN; }
 
-    static public int evalInt (QSobj a)
-    {
-	if (QSinteger.p(a)) { return ((QSinteger)a).Integer(); }
-	else if (QSreal.p(a)) { return ((QSreal)a).Double().intValue(); }
-	else if (QSrational.p(a)) {
-	    Integer[] q = ((QSrational)a).Integers();
-	    if (q[1] == 0) return 0; // NaN
-	    return (int)(q[0] / q[1]);
-	} else if (QScomplex.p(a)) {
-	    Double[] z = ((QScomplex)a).Doubles();
-	    if (z[1] != 0) return 0;  // bad.
-	    return z[0].intValue();
-	}
-	return 0;
-    }
-    static public double evalDouble (QSobj a)
-    {
-	if (QSinteger.p(a)) { return ((QSinteger)a).Integer().doubleValue(); }
-	else if (QSreal.p(a)) { return ((QSreal)a).Double().doubleValue(); }
-	else if (QSrational.p(a)) {
-	    Integer[] q = ((QSrational)a).Integers();
-	    if (q[1] == 0) return 0; // NaN
-	    return ((double)(q[0]) / (double)(q[1]));
-	} else if (QScomplex.p(a)) {
-	    Double[] z = ((QScomplex)a).Doubles();
-	    if (z[1] != 0) return 0;  // bad
-	    return z[0].doubleValue();
-	}
-	return 0;
-    }
-    static public int[] evalInts (QSobj a)
-    {
-	if (QSinteger.p(a)) { return new int[]{evalInt(a), 1}; }
-	else if (QSreal.p(a)) { return new int[]{evalInt(a), 1}; }  // TODO: approximate fraction.
-	else if (QSrational.p(a)) {
-	    Integer[] q = ((QSrational)a).Integers();
-	    return new int[]{q[0], q[1]};
-	} else if (QScomplex.p(a)) {
-	    Double[] z = ((QScomplex)a).Doubles();
-	    if (z[1] != 0) return new int[]{0,1};  // bad.
-	    return new int[]{z[0].intValue(), 1};
-	}
-	return new int[]{0,1};
-    }
-    static public double[] evalDoubles (QSobj a)
-    {
-	if (QScomplex.p(a)) {
-	    Double[] z = ((QScomplex)a).Doubles();
-	    return new double[]{z[0].doubleValue(),z[1].doubleValue()};
-	} else {
-	    return new double[]{evalDouble(a),0};
-	}
-    }
 
     static public NumCmp sign (QSobj a)
     {
@@ -625,314 +569,10 @@ class QSnumber extends QSobj {
     }
     static public NumCmp cmp (QSobj a, QSobj b)
     {
-	QSnumber test = sub(a,b);
+	QSnumber test = QSarith.sub(a,b);
 	NumCmp retval = sign(test);
 	return retval;
 	//return NumCmp.NC;
-    }
-    static public QSnumber add (QSobj a, QSobj b)
-    {
-	if ( (!QSnumber.p(a)) || (!QSnumber.p(b)) ) return NaN;
-	QSnumber retval = NaN;
-	NumType ansType = NumType.NAN;
-	if (QSinteger.p(a))
-	{
-	    if (QSinteger.p(b)) ansType = NumType.INTEGER; // Z + Z => Z
-	    else if (QSreal.p(b)) ansType = NumType.REAL; // Z + R => R
-	    else if (QSrational.p(b)) ansType = NumType.RATIONAL; // Z + Q => Q
-	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // Z + C => C
-	}
-	else if (QSreal.p(a))
-	{
-	    if (QSinteger.p(b)) ansType = NumType.REAL; // R + Z => R
-	    else if (QSreal.p(b)) ansType = NumType.REAL; // R + R => R
-	    else if (QSrational.p(b)) ansType = NumType.REAL; // R + Q => R
-	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // R + C => C
-	}
-	else if (QSrational.p(a))
-	{
-	    if (QSinteger.p(b)) ansType = NumType.RATIONAL; // Q + Z => Q
-	    else if (QSreal.p(b)) ansType = NumType.REAL; // Q + R => R
-	    else if (QSrational.p(b)) ansType = NumType.RATIONAL; // Q + Q => Q
-	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // Q + C => C
-	}
-	else if (QScomplex.p(a))
-	{
-	    if (QSinteger.p(b)) ansType = NumType.COMPLEX; // C + Z => C
-	    else if (QSreal.p(b)) ansType = NumType.COMPLEX; // C + R => R
-	    else if (QSrational.p(b)) ansType = NumType.COMPLEX; // C + Q => R
-	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // C + C => C
-	}
-
-	switch (ansType)
-	{
-	case INTEGER:
-	    int i = evalInt(a), j = evalInt(b);
-	    retval = QSinteger.make(i + j);
-	    break;
-	case REAL:
-	    double x = evalDouble(a), y = evalDouble(b);
-	    retval = QSreal.make(x + y);
-	    break;
-	case RATIONAL:
-	    int[] ii = evalInts(a), jj = evalInts(b);
-	    if ((ii[1] * jj[1]) != 0)
-	    {
-		int num = ii[0]*jj[1] + ii[1]*jj[0];
-		int den = ii[1] * jj[1];
-		retval = QSrational.make(num, den);
-	    }
-	    break;
-	case COMPLEX:
-	    double[] xx = evalDoubles(a), yy = evalDoubles(b);
-	    retval = QScomplex.make(xx[0]+yy[0], xx[1]+yy[1]);
-	    break;
-	default:
-	    retval = NaN;
-	    break;
-	}
-
-	return retval;
-    }
-    static public QSnumber sub (QSobj a, QSobj b)
-    {
-	if ( (!QSnumber.p(a)) || (!QSnumber.p(b)) ) return NaN;
-	QSnumber retval = NaN;
-	NumType ansType = NumType.NAN;
-	if (QSinteger.p(a))
-	{
-	    if (QSinteger.p(b)) ansType = NumType.INTEGER; // Z - Z => Z
-	    else if (QSreal.p(b)) ansType = NumType.REAL; // Z - R => R
-	    else if (QSrational.p(b)) ansType = NumType.RATIONAL; // Z - Q => Q
-	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // Z - C => C
-	}
-	else if (QSreal.p(a))
-	{
-	    if (QSinteger.p(b)) ansType = NumType.REAL; // R - Z => R
-	    else if (QSreal.p(b)) ansType = NumType.REAL; // R - R => R
-	    else if (QSrational.p(b)) ansType = NumType.REAL; // R - Q => R
-	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // R - C => C
-	}
-	else if (QSrational.p(a))
-	{
-	    if (QSinteger.p(b)) ansType = NumType.RATIONAL; // Q - Z => Q
-	    else if (QSreal.p(b)) ansType = NumType.REAL; // Q - R => R
-	    else if (QSrational.p(b)) ansType = NumType.RATIONAL; // Q - Q => Q
-	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // Q - C => C
-	}
-	else if (QScomplex.p(a))
-	{
-	    if (QSinteger.p(b)) ansType = NumType.COMPLEX; // C - Z => C
-	    else if (QSreal.p(b)) ansType = NumType.COMPLEX; // C - R => C
-	    else if (QSrational.p(b)) ansType = NumType.COMPLEX; // C - Q => C
-	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // C - C => C
-	}
-
-	switch (ansType)
-	{
-	case INTEGER:
-	    int i = evalInt(a), j = evalInt(b);
-	    retval = QSinteger.make(i - j);
-	    break;
-	case REAL:
-	    double x = evalDouble(a), y = evalDouble(b);
-	    retval = QSreal.make(x - y);
-	    break;
-	case RATIONAL:
-	    int[] ii = evalInts(a), jj = evalInts(b);
-	    if ((ii[1] * jj[1]) != 0)
-	    {
-		int num = ii[0]*jj[1] - ii[1]*jj[0];
-		int den = ii[1] * jj[1];
-		retval = QSrational.make(num, den);
-	    }
-	    break;
-	case COMPLEX:
-	    double[] xx = evalDoubles(a), yy = evalDoubles(b);
-	    retval = QScomplex.make(xx[0]-yy[0], xx[1]-yy[1]);
-	    break;
-	default:
-	    retval = NaN;
-	    break;
-	}
-
-	return retval;
-    }
-    static public QSnumber mul (QSobj a, QSobj b)
-    {
-	if ( (!QSnumber.p(a)) || (!QSnumber.p(b)) ) return NaN;
-	QSnumber retval = NaN;
-	NumType ansType = NumType.NAN;
-	if (QSinteger.p(a))
-	{
-	    if (QSinteger.p(b)) ansType = NumType.INTEGER; // Z * Z => Z
-	    else if (QSreal.p(b)) ansType = NumType.REAL; // Z * R => R
-	    else if (QSrational.p(b)) ansType = NumType.RATIONAL; // Z * Q => Q
-	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // Z * C => C
-	}
-	else if (QSreal.p(a))
-	{
-	    if (QSinteger.p(b)) ansType = NumType.REAL; // R * Z => R
-	    else if (QSreal.p(b)) ansType = NumType.REAL; // R * R => R
-	    else if (QSrational.p(b)) ansType = NumType.REAL; // R * Q => R
-	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // R * C => C
-	}
-	else if (QSrational.p(a))
-	{
-	    if (QSinteger.p(b)) ansType = NumType.RATIONAL; // Q * Z => Q
-	    else if (QSreal.p(b)) ansType = NumType.REAL; // Q * R => R
-	    else if (QSrational.p(b)) ansType = NumType.RATIONAL; // Q * Q => Q
-	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // Q * C => C
-	}
-	else if (QScomplex.p(a))
-	{
-	    if (QSinteger.p(b)) ansType = NumType.COMPLEX; // C * Z => C
-	    else if (QSreal.p(b)) ansType = NumType.COMPLEX; // C * R => C
-	    else if (QSrational.p(b)) ansType = NumType.COMPLEX; // C * Q => .
-	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // C * C => C
-	}
-
-	switch (ansType)
-	{
-	case INTEGER:
-	    int i = evalInt(a), j = evalInt(b);
-	    retval = QSinteger.make(i * j);
-	    break;
-	case REAL:
-	    double x = evalDouble(a), y = evalDouble(b);
-	    retval = QSreal.make(x * y);
-	    break;
-	case RATIONAL:
-	    int[] ii = evalInts(a), jj = evalInts(b);
-	    if ((ii[1] * jj[1]) != 0)
-	    {
-		int num = ii[0] * jj[0];
-		int den = ii[1] * jj[1];
-		retval = QSrational.make(num, den);
-	    }
-	    break;
-	case COMPLEX:
-	    double[] xx = evalDoubles(a), yy = evalDoubles(b);
-	    double aa = (xx[0]*yy[0]) - (xx[1]*yy[1]);  // i^2 = -1
-	    double bb = (xx[0]*yy[1]) + (xx[1]*yy[0]);
-	    retval = QScomplex.make(aa, bb);
-	    break;
-	default:
-	    retval = NaN;
-	    break;
-	}
-
-	return retval;
-    }
-    static private int[] _divmod (QSobj a, QSobj b)
-    {
-	int[] retval = { 0, 0 };
-	if (!QSinteger.p(a)) return retval;
-	if (!QSinteger.p(b)) return retval;
-	int i = evalInt(a), j = evalInt(b);
-	if (j == 0) return retval;
-	int q = (i / j);
-	int r = (i % j);
-	retval = new int[]{q,r};
-	return retval;
-    }
-    static public QSnumber mod (QSobj a, QSobj b)
-    {
-	QSnumber retval = null;
-	NumType ansType = NumType.NAN;
-	if (QSinteger.p(a))
-	{
-	    if (QSinteger.p(b)) ansType = NumType.INTEGER; // Z % Z => Z
-	    else if (QSreal.p(b)) ansType = NumType.NAN; // Z % R => -
-	    else if (QSrational.p(b)) ansType = NumType.NAN; // Z % Q => -
-	    else if (QScomplex.p(b)) ansType = NumType.NAN; // Z % C => -
-	}
-	else
-	{
-	    ansType = NumType.NAN; // * % * => -
-	}
-	if (ansType == NumType.INTEGER)
-	{
-	    int i = evalInt(a), j = evalInt(b);
-	    retval = QSinteger.make(i % j);
-	}
-	else
-	{
-	    retval = QSinteger.make(0);
-	}
-	return retval;
-    }
-    static public QSnumber div (QSobj a, QSobj b)
-    {
-	if ( (!QSnumber.p(a)) || (!QSnumber.p(b)) ) return NaN;
-	QSnumber retval = NaN;
-	NumType ansType = NumType.NAN;
-	if (QSinteger.p(a))
-	{
-	    if (QSinteger.p(b)) ansType = NumType.RATIONAL; // Z / Z => Q
-	    else if (QSreal.p(b)) ansType = NumType.REAL; // Z / R => R
-	    else if (QSrational.p(b)) ansType = NumType.RATIONAL; // Z / Q => Q
-	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // Z / C => C
-	}
-	else if (QSreal.p(a))
-	{
-	    if (QSinteger.p(b)) ansType = NumType.REAL; // R / Z => R
-	    else if (QSreal.p(b)) ansType = NumType.REAL; // R / R => R
-	    else if (QSrational.p(b)) ansType = NumType.REAL; // R / Q => R
-	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // R / C => C
-	}
-	else if (QSrational.p(a))
-	{
-	    if (QSinteger.p(b)) ansType = NumType.RATIONAL; // Q / Z => Q
-	    else if (QSreal.p(b)) ansType = NumType.REAL; // Q / R => R
-	    else if (QSrational.p(b)) ansType = NumType.RATIONAL; // Q / Q => Q
-	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // Q / C => C
-	}
-	else if (QScomplex.p(a))
-	{
-	    if (QSinteger.p(b)) ansType = NumType.COMPLEX; // C / Z => C
-	    else if (QSreal.p(b)) ansType = NumType.COMPLEX; // C / R => C
-	    else if (QSrational.p(b)) ansType = NumType.COMPLEX; // C / Q => C
-	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // C / C => C
-	}
-
-	switch (ansType)
-	{
-	case INTEGER:
-	    int i = evalInt(a), j = evalInt(b);
-	    retval = QSinteger.make(i / j);
-	    break;
-	case REAL:
-	    double x = evalDouble(a), y = evalDouble(b);
-	    retval = QSreal.make(x / y);
-	    break;
-	case RATIONAL:
-	    int[] ii = evalInts(a), jj = evalInts(b);
-	    if ((ii[1] * jj[1]) != 0)
-	    {
-		int num = ii[0] * jj[1];
-		int den = ii[1] * jj[0];
-		retval = QSrational.make(num, den);
-	    }
-	    break;
-	case COMPLEX:
-	    double[] xx = evalDoubles(a), yy = evalDoubles(b);
-	    /*
-	    a + i*b <= z0
-	    c * i*d <= z1
-	    (z0 / z1) = (a*c + b*d)/(c^2 + d^2) + i*(b*c - a*d)/(c^2 + d^2)
-	    */
-	    double den = yy[0]*yy[0] + yy[1]*yy[1];
-	    double aa = (xx[0]*yy[0] + xx[1]*yy[1]);
-	    double bb = (xx[1]*yy[0] - xx[0]*yy[1]);
-	    retval = QScomplex.make(aa/den, bb/den);
-	    break;
-	default:
-	    retval = NaN;
-	    break;
-	}
-
-	return retval;
     }
 };
 
@@ -1008,6 +648,7 @@ class QScomplex extends QSnumber {
     }
     public double realpart () { return a; }
     public double imagpart () { return b; }
+    public QScomplex conjugate () { return QScomplex.make(a, -b); }
     @Override public String repr () { return a + "+" + b + "i"; }
 
     static public boolean p (QSobj x) { return ((x != null) && (x instanceof QScomplex)); }

@@ -51,26 +51,26 @@ public class TestMath
 
 	num0 = QSobj.make(3);
 	num1 = QSobj.make(4);
-	val = QSnumber.add(num0, num1);
+	val = QSarith.add(num0, num1);
 	System.out.println("add(" + num0 + "," + num1 + ") = " + val);
 	apply(val, Integer.toString(7));
 
 	num0 = QSobj.make(0.5);
 	num1 = QSobj.make(1.5);
-	val = QSnumber.add(num0, num1);
+	val = QSarith.add(num0, num1);
 	System.out.println("add(" + num0 + "," + num1 + ") = " + val);
 	apply(val, Double.toString(2.0));
 
 	num0 = QSobj.make(1,3);
 	num1 = QSobj.make(2,3);
-	val = QSnumber.add(num0, num1);
+	val = QSarith.add(num0, num1);
 	System.out.println("add(" + num0 + "," + num1 + ") = " + val);
 	//apply(val, Integer.toString(1) + "/" + Integer.toString(1));
 	apply(val, Integer.toString(9) + "/" + Integer.toString(9));
 
 	num0 = QSobj.make(0,.2);
 	num1 = QSobj.make(8.,0);
-	val = QSnumber.add(num0, num1);
+	val = QSarith.add(num0, num1);
 	System.out.println("add(" + num0 + "," + num1 + ") = " + val);
 	//apply(val, Integer.toString(1) + "/" + Integer.toString(1));
 	apply(val, Double.toString(8) + "+" + Double.toString(.2) + "i");
@@ -78,41 +78,51 @@ public class TestMath
 
 	num0 = QSobj.make(92);
 	num1 = QSobj.make(55);
-	val = QSnumber.sub(num0, num1);
+	val = QSarith.sub(num0, num1);
 	System.out.println("sub(" + num0 + "," + num1 + ") = " + val);
 	apply(val, Integer.toString(92-55));
 
 
 	num0 = QSobj.make(5);
 	num1 = QSobj.make(9);
-	val = QSnumber.mul(num0, num1);
+	val = QSarith.mul(num0, num1);
 	System.out.println("mul(" + num0 + "," + num1 + ") = " + val);
 	apply(val, Integer.toString(5*9));
 
 	num0 = QSobj.make(3.,4.);
 	num1 = QSobj.make(2.,5.);
-	val = QSnumber.mul(num0, num1);
+	val = QSarith.mul(num0, num1);
 	System.out.println("mul(" + num0 + "," + num1 + ") = " + val);
 	apply(val, Double.toString(-14) + "+" + Double.toString(23) + "i");
 
 
 	num0 = QSobj.make(1);
 	num1 = QSobj.make(2);
-	val = QSnumber.div(num0, num1);
+	val = QSarith.div(num0, num1);
 	System.out.println("div(" + num0 + "," + num1 + ") = " + val);
 	apply(val, Integer.toString(1) + "/" + Integer.toString(2));
 
 	num0 = QSobj.make(1.);
 	num1 = QSobj.make(2.);
-	val = QSnumber.div(num0, num1);
+	val = QSarith.div(num0, num1);
 	System.out.println("div(" + num0 + "," + num1 + ") = " + val);
 	apply(val, Double.toString(1./2.));
 
 	num0 = QSobj.make(3.,4.);
 	num1 = QSobj.make(6.,-11.);
-	val = QSnumber.div(num0, num1);
+	val = QSarith.div(num0, num1);
 	System.out.println("div(" + num0 + "," + num1 + ") = " + val);
 	apply(val, Double.toString(-26./157) + "+" + Double.toString(57./157) + "i");
+
+	num0 = QSobj.make(9);
+	val = QSarith.sqrt(num0);
+	System.out.println("sqrt(" + num0 + ") = " + val);
+	apply(val, Integer.toString(3));
+
+	num0 = QSobj.make(8);
+	val = QSarith.sqrt(num0);
+	System.out.println("sqrt(" + num0 + ") = " + val);
+	apply(val, Double.toString(Math.sqrt(8.)));
     }
 }
 
