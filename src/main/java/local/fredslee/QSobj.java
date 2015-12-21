@@ -36,17 +36,8 @@ interface IQSprimitive {
 
 class QSobj extends Object implements IQSobj {
     static QSnull qsnull = QSnull.singleton;
-//  static TreeSet<QSsym> symtree = null;
-    static QSsymtree symtree = null;
-    static QSprimreg primreg = null;
 
     public QSobj () {
-        if (symtree == null) {
-	    build_symtree();
-        }
-	if (primreg == null) {
-	    build_primreg();
-	}
     }
     @Override public String repr () throws Exception { return "#<QSobject>"; }
     @Override public String toString () {
@@ -57,18 +48,6 @@ class QSobj extends Object implements IQSobj {
 	}
     }
 
-    static protected void build_symtree () {
-	if (symtree == null) {
-            //symtree = new TreeSet<QSsym>();
-            //symtree = new TreeMap<String,QSsym>();
-	    symtree = new QSsymtree();
-	}
-    }
-    protected void build_primreg () {
-	if (primreg == null) {
-	    primreg = new QSprimreg();
-	}
-    }
 
     public String dump () {
         if (this instanceof QSnull) {
@@ -169,18 +148,13 @@ class QSobj extends Object implements IQSobj {
     static public boolean stringp (QSobj x) { return ((x != null) && (x instanceof QSstr)); }
     static public boolean symbolp (QSobj x) { return ((x != null) && (x instanceof QSsym)); }
     static public boolean vectorp (QSobj x) { return ((x != null) && (x instanceof QSvec)); }
+    static public boolean procp (QSobj x) { return ((x != null) && (x instanceof QSproc)); }
     static public boolean procedurep (QSobj x) { return ((x != null) && ((x instanceof QSproc) || (x instanceof QSprim))); }
     static public boolean pairp (QSobj x) { return ((x != null) && (x instanceof QSpair)); }
     static public boolean continuationp (QSobj x) { return ((x != null) && (x instanceof QScontinuation)); }
 
     static public boolean listp (QSobj x) { return QSpair.QSlist.p(x); }
 
-    static public QSsym intern (String symname) {
-	if (symtree == null) {
-	    build_symtree();
-	}
-	return symtree.intern(symname);
-    }
     // Factory functions sensitive to argument type.
     //static public QSobj make () { return new QSnull(); }
     static public QSobj make () { return QSnull.make(); }
@@ -191,16 +165,8 @@ class QSobj extends Object implements IQSobj {
     static public QSobj make (int p, int q) { return QSrational.make(p,q); }
     static public QSobj make (double a, double b) { return QScomplex.make(a,b); }
     static public QSobj make (String s) { return QSstr.make(s); }
-    /*
-      static public QSobj make (QSobj[] elts) {
-        QSvec retval = new QSvec(elts.length);
-        for (int i = 0; i < elts.length; i++) {
-          retval.setq(i, elts[i]);
-        }
-        return retval;
-      }
-    */
 
+    static public QSsym intern (String symname) { return QSsym.make(symname); }
     static public QSobj vec (int initlen) { return QSvec.make(initlen, null); }
     static public QSobj vec (int initlen, QSobj fill) { return QSvec.make(initlen, fill); }
     static public QSpair cons (QSobj a, QSobj d) { return QSpair.make(a,d); }
@@ -252,6 +218,8 @@ class QSstr extends QSobj {
 };
 
 class QSsym extends QSobj {
+    static QSsymtree symtree = new QSsymtree();
+
     String s;
     int _symid;
     public QSsym (String inits, int symid) {
@@ -263,6 +231,11 @@ class QSsym extends QSobj {
     public String name () { return s; }
     public int symid () { return _symid; }
     @Override public String repr () { return s.toString(); }
+
+    static public QSsym make (String symname)
+    {
+	return symtree.intern(symname);
+    }
 };
 
 class QSvec extends QSobj {
@@ -326,6 +299,7 @@ class QSvec extends QSobj {
 
 
 class QSprim extends QSobj {
+    static QSprimreg primreg = new QSprimreg();
 
     static public boolean p (QSobj x) { return ((x != null) && (x instanceof QSprim)); }
 };
