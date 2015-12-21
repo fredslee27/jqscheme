@@ -123,6 +123,11 @@ class QSobj extends Object implements IQSobj {
     public boolean isList () { return listp(this); }
 
 
+    public boolean eqp (QSobj other) { return eqp(this, other); }
+    public boolean eqvp (QSobj other) { return eqvp(this, other); }
+    public boolean equalp (QSobj other) { return equalp(this, other); }
+
+
     /* Type predicates, static. */
     static public boolean nullp (QSobj x) { return QSnull.p(x); }
     static public boolean booleanp (QSobj x) { return QSbool.p(x); }
@@ -142,6 +147,11 @@ class QSobj extends Object implements IQSobj {
     static public boolean continuationp (QSobj x) { return QScontinuation.p(x); }
 
     static public boolean listp (QSobj x) { return QSpair.QSlist.p(x); }
+
+
+    static public boolean eqp (QSobj a, QSobj b) { return (a == b); }
+    static public boolean eqvp (QSobj a, QSobj b) { return (a == b); }
+    static public boolean equalp (QSobj a, QSobj b) { return (a == b); }
 
     // Factory functions sensitive to argument type.
     //static public QSobj make () { return new QSnull(); }
@@ -302,18 +312,19 @@ class QSpair extends QSobj {
 
     QSobj a, d;
 
-    static class /*QSlist*/QSlist {
-	private static QSpair nextpair (QSpair pair)
-	{
-	    if (pair.cdr() == null)
-		return null;
-	    QSobj next = pair.cdr();
-	    if (QSpair.p(next)) {
-		return (QSpair)next;
-	    } else {
-		return null;
-	    }
+    private static QSpair nextpair (QSpair pair)
+    {
+	if (pair.cdr() == null)
+	    return null;
+	QSobj next = pair.cdr();
+	if (QSpair.p(next)) {
+	    return (QSpair)next;
+	} else {
+	    return null;
 	}
+    }
+    // Pairs implementing List.
+    static class QSlist {
 	static QSpair make (QSobj ... elements) {
 	    QSpair retval = null;
 	    QSpair last = null;
@@ -399,6 +410,33 @@ class QSpair extends QSobj {
     //QSlist list = null;
     //protected QSpair pair () { return this; }
 
+    // Pairs implementing association list.
+    static class QSalist {
+	// alist := ( ASSOC1 ASSOC2 ASSOC3 ... )
+	// assoc := ( key. value )
+	public static boolean p (QSobj root) {
+	    if (!QSpair.p(root)) return false;
+	    QSpair iter = (QSpair)root;
+	    for (; iter != null; iter = nextpair(iter)) {
+		if (! (QSpair.p(iter.car())))
+		    return false;
+	    };
+	    return true;
+	};
+	public static QSpair insert (QSpair alist, QSobj k, QSobj v) {
+	    QSpair node = QSobj.cons(k, v);
+	    QSpair retval = QSobj.cons(node, alist);
+	    return retval;
+	}
+	public static QSpair make (QSobj firstkey, QSobj firstvalue) {
+	    return insert(null, firstkey, firstvalue);
+	};
+	// Returns the assoc node.
+	public static QSpair assoc (QSobj alist, QSobj key) {
+	    return null;
+	}
+    };
+
     public QSpair (QSobj inita, QSobj initd) { build(inita, initd); }
     public QSpair (QSobj inita) { build(inita, null); }
     protected void build (QSobj inita, QSobj initd)
@@ -406,11 +444,17 @@ class QSpair extends QSobj {
 	a = inita;
 	d = initd;
 	//list = new QSlist();
-	}
+    }
+    /*
     public QSobj car () { return a; }
     public QSobj cdr () { return d; }
     void setcar (QSobj v) { if (true) a = v; }
     void setcdr (QSobj v) { if (true) d = v; }
+    */
+    public QSobj car () { return car(this); }
+    public QSobj cdr () { return cdr(this); }
+    public void setcar (QSobj v) { setcar(this, v); }
+    public void setcdr (QSobj v) { setcdr(this, v); }
     @Override public String toString () {
 	StringBuilder temp = new StringBuilder();
 	temp.append("(");
@@ -454,17 +498,58 @@ class QSpair extends QSobj {
     static public boolean p (QSobj root) { return (root instanceof QSpair); }
     static public boolean listp (QSobj root) { return (QSpair.p(root) && QSlist.p((QSpair)root)); }
     static public QSpair make (QSobj a, QSobj d) { return new QSpair(a,d); }
+
+    static public QSobj car (QSobj x) { return (QSpair.p(x) ? ((QSpair)x).a : null); }
+    static public QSobj cdr (QSobj x) { return (QSpair.p(x) ? ((QSpair)x).d : null); }
+    static public QSobj setcar (QSobj x, QSobj v)
+    {
+	QSpair xx = (QSpair.p(x) ? (QSpair)x : null);
+	if (xx == null) return null;
+	if (true) {
+	    xx.a = v;
+	}
+	return null;
+    }
+    static public QSobj setcdr (QSobj x, QSobj v)
+    {
+	QSpair xx = (QSpair.p(x) ? (QSpair)x : null);
+	if (xx == null) return null;
+	if (true) {
+	    xx.d = v;
+	}
+	return null;
+    }
 };
 
 
 
 
 class QSnumber extends QSobj {
+    // guards
+    static public QSnumber NaN = new QSnumber();
+    static public QSnumber inf = new QSnumber();
+
+    enum NumCmp {
+	NC,  // not comparable.
+	LT,
+	EQ,
+	GT,
+    };
+    enum NumType {
+	INTEGER,
+	REAL,
+	RATIONAL,
+	COMPLEX,
+	INF,
+	NAN,
+    };
     public boolean isNumber () { return true; }
     public boolean isInteger() { return false; }
     public boolean isReal() { return false; }
     public boolean isRational() { return false; }
     public boolean isComplex() { return false; }
+    public boolean isNaN () { return false; }
+    public boolean isInf () { return false; }
     @Override public String repr () throws Exception {
 	throw new Exception("(Number base class)");
     }
@@ -474,23 +559,308 @@ class QSnumber extends QSobj {
     static public QSnumber make (double f) { return new QSreal(f); }
     static public QSnumber make (int p, int q) { return new QSrational(p,q); }
     static public QSnumber make (double a, double b) { return new QScomplex(a,b); }
+    static public QSnumber nan () { return NaN; }
+
+    static public int evalInt (QSobj a)
+    {
+	if (QSinteger.p(a)) { return ((QSinteger)a).Integer(); }
+	else if (QSreal.p(a)) { return ((QSreal)a).Double().intValue(); }
+	else if (QSrational.p(a)) {
+	    Integer[] q = ((QSrational)a).Integers();
+	    if (q[1] == 0) return 0; // NaN
+	    return (int)(q[0] / q[1]);
+	} else if (QScomplex.p(a)) {
+	    Double[] z = ((QScomplex)a).Doubles();
+	    if (z[1] != 0) return 0;  // bad.
+	    return z[0].intValue();
+	}
+	return 0;
+    }
+    static public double evalDouble (QSobj a)
+    {
+	if (QSinteger.p(a)) { return ((QSinteger)a).Integer().doubleValue(); }
+	else if (QSreal.p(a)) { return ((QSreal)a).Double().doubleValue(); }
+	else if (QSrational.p(a)) {
+	    Integer[] q = ((QSrational)a).Integers();
+	    if (q[1] == 0) return 0; // NaN
+	    return ((double)(q[0]) / (double)(q[1]));
+	} else if (QScomplex.p(a)) {
+	    Double[] z = ((QScomplex)a).Doubles();
+	    if (z[1] != 0) return 0;  // bad
+	    return z[0].doubleValue();
+	}
+	return 0;
+    }
+    static public int[] evalInts (QSobj a)
+    {
+	if (QSinteger.p(a)) { return new int[]{evalInt(a), 1}; }
+	else if (QSreal.p(a)) { return new int[]{evalInt(a), 1}; }  // TODO: approximate fraction.
+	else if (QSrational.p(a)) {
+	    Integer[] q = ((QSrational)a).Integers();
+	    return new int[]{q[0], q[1]};
+	} else if (QScomplex.p(a)) {
+	    Double[] z = ((QScomplex)a).Doubles();
+	    if (z[1] != 0) return new int[]{0,1};  // bad.
+	    return new int[]{z[0].intValue(), 1};
+	}
+	return new int[]{0,1};
+    }
+    static public double[] evalDoubles (QSobj a)
+    {
+	if (QScomplex.p(a)) {
+	    Double[] z = ((QScomplex)a).Doubles();
+	    return new double[]{z[0].doubleValue(),z[1].doubleValue()};
+	} else {
+	    return new double[]{evalDouble(a),0};
+	}
+    }
+
+    static public NumCmp sign (QSobj a)
+    {
+	if (QSinteger.p(a)) return ((QSinteger)a).sign();
+	else if (QSreal.p(a)) return ((QSreal)a).sign();
+	else if (QSrational.p(a)) return ((QSrational)a).sign();
+	else if (QScomplex.p(a)) return ((QScomplex)a).sign();
+	return NumCmp.NC;
+    }
+    static public NumCmp cmp (QSobj a, QSobj b)
+    {
+	QSnumber test = sub(a,b);
+	NumCmp retval = sign(test);
+	return retval;
+	//return NumCmp.NC;
+    }
+    static public QSnumber add (QSobj a, QSobj b)
+    {
+	if ( (!QSnumber.p(a)) || (!QSnumber.p(b)) ) return NaN;
+	QSnumber retval = NaN;
+	NumType ansType = NumType.NAN;
+	if (QSinteger.p(a))
+	{
+	    if (QSinteger.p(b)) ansType = NumType.INTEGER; // Z + Z => Z
+	    else if (QSreal.p(b)) ansType = NumType.REAL; // Z + R => R
+	    else if (QSrational.p(b)) ansType = NumType.RATIONAL; // Z + Q => Q
+	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // Z + C => C
+	}
+	else if (QSreal.p(a))
+	{
+	    if (QSinteger.p(b)) ansType = NumType.REAL; // R + Z => R
+	    else if (QSreal.p(b)) ansType = NumType.REAL; // R + R => R
+	    else if (QSrational.p(b)) ansType = NumType.REAL; // R + Q => R
+	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // R + C => C
+	}
+	else if (QSrational.p(a))
+	{
+	    if (QSinteger.p(b)) ansType = NumType.RATIONAL; // Q + Z => Q
+	    else if (QSreal.p(b)) ansType = NumType.REAL; // Q + R => R
+	    else if (QSrational.p(b)) ansType = NumType.RATIONAL; // Q + Q => Q
+	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // Q + C => C
+	}
+	else if (QScomplex.p(a))
+	{
+	    if (QSinteger.p(b)) ansType = NumType.COMPLEX; // C + Z => C
+	    else if (QSreal.p(b)) ansType = NumType.COMPLEX; // R + R => R
+	    else if (QSrational.p(b)) ansType = NumType.COMPLEX; // R + Q => R
+	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // R + C => C
+	}
+
+	switch (ansType)
+	{
+	case INTEGER:
+	    int i = evalInt(a), j = evalInt(b);
+	    retval = QSinteger.make(i + j);
+	    break;
+	case REAL:
+	    double x = evalDouble(a), y = evalDouble(b);
+	    retval = QSreal.make(x + y);
+	    break;
+	case RATIONAL:
+	    int[] ii = evalInts(a), jj = evalInts(b);
+	    if ((ii[1] * jj[1]) != 0)
+	    {
+		int num = ii[0]*jj[1] + ii[1]*jj[0];
+		int den = ii[1] * jj[1];
+		retval = QSrational.make(num, den);
+	    }
+	    break;
+	case COMPLEX:
+	    double[] xx = evalDoubles(a), yy = evalDoubles(b);
+	    retval = QScomplex.make(xx[0]+yy[0], xx[1]+yy[1]);
+	    break;
+	default:
+	    retval = NaN;
+	    break;
+	}
+
+	return retval;
+    }
+    static public QSnumber sub (QSobj a, QSobj b)
+    {
+	if ( (!QSnumber.p(a)) || (!QSnumber.p(b)) ) return NaN;
+	QSnumber retval = NaN;
+	NumType ansType = NumType.NAN;
+	if (QSinteger.p(a))
+	{
+	    if (QSinteger.p(b)) ansType = NumType.INTEGER; // Z - Z => Z
+	    else if (QSreal.p(b)) ansType = NumType.REAL; // Z - R => R
+	    else if (QSrational.p(b)) ansType = NumType.RATIONAL; // Z - Q => Q
+	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // Z - C => C
+	}
+	else if (QSreal.p(a))
+	{
+	    if (QSinteger.p(b)) ansType = NumType.REAL; // R - Z => R
+	    else if (QSreal.p(b)) ansType = NumType.REAL; // R - R => R
+	    else if (QSrational.p(b)) ansType = NumType.REAL; // R - Q => R
+	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // R - C => C
+	}
+	else if (QSrational.p(a))
+	{
+	    if (QSinteger.p(b)) ansType = NumType.RATIONAL; // Q - Z => Q
+	    else if (QSreal.p(b)) ansType = NumType.REAL; // Q - R => R
+	    else if (QSrational.p(b)) ansType = NumType.RATIONAL; // Q - Q => Q
+	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // Q - C => C
+	}
+	else if (QScomplex.p(a))
+	{
+	    if (QSinteger.p(b)) ansType = NumType.COMPLEX; // C - Z => C
+	    else if (QSreal.p(b)) ansType = NumType.COMPLEX; // R - R => R
+	    else if (QSrational.p(b)) ansType = NumType.COMPLEX; // R - Q => R
+	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // R - C => C
+	}
+
+	switch (ansType)
+	{
+	case INTEGER:
+	    int i = evalInt(a), j = evalInt(b);
+	    retval = QSinteger.make(i - j);
+	    break;
+	case REAL:
+	    double x = evalDouble(a), y = evalDouble(b);
+	    retval = QSreal.make(x - y);
+	    break;
+	case RATIONAL:
+	    int[] ii = evalInts(a), jj = evalInts(b);
+	    if ((ii[1] * jj[1]) != 0)
+	    {
+		int num = ii[0]*jj[1] - ii[1]*jj[0];
+		int den = ii[1] * jj[1];
+		retval = QSrational.make(num, den);
+	    }
+	    break;
+	case COMPLEX:
+	    double[] xx = evalDoubles(a), yy = evalDoubles(b);
+	    retval = QScomplex.make(xx[0]-yy[0], xx[1]-yy[1]);
+	    break;
+	default:
+	    retval = NaN;
+	    break;
+	}
+
+	return retval;
+    }
+    static public QSnumber mul (QSobj a, QSobj b)
+    {
+	if ( (!QSnumber.p(a)) || (!QSnumber.p(b)) ) return NaN;
+	QSnumber retval = NaN;
+	NumType ansType = NumType.NAN;
+	if (QSinteger.p(a))
+	{
+	    if (QSinteger.p(b)) ansType = NumType.INTEGER; // Z * Z => Z
+	    else if (QSreal.p(b)) ansType = NumType.REAL; // Z * R => R
+	    else if (QSrational.p(b)) ansType = NumType.RATIONAL; // Z * Q => Q
+	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // Z * C => C
+	}
+	else if (QSreal.p(a))
+	{
+	    if (QSinteger.p(b)) ansType = NumType.REAL; // R * Z => R
+	    else if (QSreal.p(b)) ansType = NumType.REAL; // R * R => R
+	    else if (QSrational.p(b)) ansType = NumType.REAL; // R * Q => R
+	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // R * C => C
+	}
+	else if (QSrational.p(a))
+	{
+	    if (QSinteger.p(b)) ansType = NumType.RATIONAL; // Q * Z => Q
+	    else if (QSreal.p(b)) ansType = NumType.REAL; // Q * R => R
+	    else if (QSrational.p(b)) ansType = NumType.RATIONAL; // Q * Q => Q
+	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // Q * C => C
+	}
+	else if (QScomplex.p(a))
+	{
+	    if (QSinteger.p(b)) ansType = NumType.COMPLEX; // C * Z => C
+	    else if (QSreal.p(b)) ansType = NumType.COMPLEX; // R * R => R
+	    else if (QSrational.p(b)) ansType = NumType.COMPLEX; // R * Q => R
+	    else if (QScomplex.p(b)) ansType = NumType.COMPLEX; // R * C => C
+	}
+
+	switch (ansType)
+	{
+	case INTEGER:
+	    int i = evalInt(a), j = evalInt(b);
+	    retval = QSinteger.make(i * j);
+	    break;
+	case REAL:
+	    double x = evalDouble(a), y = evalDouble(b);
+	    retval = QSreal.make(x * y);
+	    break;
+	case RATIONAL:
+	    int[] ii = evalInts(a), jj = evalInts(b);
+	    if ((ii[1] * jj[1]) != 0)
+	    {
+		int num = ii[0] * jj[0];
+		int den = ii[1] * jj[1];
+		retval = QSrational.make(num, den);
+	    }
+	    break;
+	case COMPLEX:
+	    double[] xx = evalDoubles(a), yy = evalDoubles(b);
+	    double aa = (xx[0]*yy[0]) - (xx[1]*yy[1]);  // i^2 = -1
+	    double bb = (xx[0]*yy[1]) + (xx[1]*yy[0]);
+	    retval = QScomplex.make(aa, bb);
+	    break;
+	default:
+	    retval = NaN;
+	    break;
+	}
+
+	return retval;
+    }
 };
 
 class QSinteger extends QSnumber {
     int i;
     public QSinteger (int initi) { i = initi; }
     public Integer Integer() { return new Integer(i); }
+    public NumCmp sign () { if (i < 0) return NumCmp.LT; else if (i > 0) return NumCmp.GT; else return NumCmp.EQ; }
     @Override public boolean isInteger () { return true; }
     @Override public String repr () { return Integer.toString(i); }
 
     static public boolean p (QSobj x) { return ((x != null) && (x instanceof QSinteger)); }
     static public QSinteger make (int i) { return new QSinteger(i); }
+    static public boolean eqvp (QSobj a, QSobj b)
+    {
+	// baseline comparison.
+	QSinteger aa = QSinteger.p(a) ? (QSinteger)a : null;
+	QSinteger bb = QSinteger.p(b) ? (QSinteger)b : null;
+	if ((aa == null) || (b == null)) return false;
+	return (aa.i == bb.i);
+    }
+    static public boolean eqp (QSobj a, QSobj b)
+    {
+	// strictest comparison.
+	return eqvp(a,b);
+    }
+    static public boolean equalp (QSobj a, QSobj b)
+    {
+	// loosest comparison.
+	return false;
+    }
 };
 
 class QSreal extends QSnumber {
     double f;
     public QSreal (double initf) { f = initf; }
     public Double Double() { return new Double(f); }
+    public NumCmp sign () { if (f < 0) return NumCmp.LT; else if (f > 0) return NumCmp.GT; else return NumCmp.EQ; }
     @Override public boolean isReal () { return true; }
     @Override public String repr () { return Double.toString(f); }
 
@@ -500,11 +870,16 @@ class QSreal extends QSnumber {
 
 class QSrational extends QSnumber {
     int p, q;
-    public QSrational (int initp, int initq) { p = initp; q = initq;
-    }
-//
+    public QSrational (int initp, int initq) { p = initp; q = initq; }
+    public Integer[] Integers() { return new Integer[]{numerator(), denominator()}; }
     public int numerator () { return p; }
     public int denominator () { return q; }
+    public NumCmp sign () {
+	int align = p * q;
+	if (align < 0) return NumCmp.LT;
+	else if (align > 0) return NumCmp.GT;
+	else return NumCmp.EQ;
+    }
     @Override public boolean isRational () { return true; }
     @Override public String repr () { return p + "/" + q; }
 
@@ -516,7 +891,11 @@ class QScomplex extends QSnumber {
     double a, b;
     public QScomplex (double inita, double initb) { a = inita; b = initb;
     }
-//
+    public Double[] Doubles() { return new Double[]{real(),imag()}; }
+    public NumCmp sign () {
+	if ((a == 0) && (b == 0)) return NumCmp.EQ;
+	else return NumCmp.NC;
+    }
     public double real () { return a; }
     public double imag () { return b; }
     @Override public String repr () { return a + "+" + b + "i"; }
