@@ -137,21 +137,22 @@ class QSobj extends Object implements IQSobj {
 
 
     /* Type predicates, static. */
-    static public boolean nullp (QSobj x) { return ((x == null) || (x instanceof QSnull)); }
-    static public boolean booleanp (QSobj x) { return ((x != null) && (x instanceof QSbool)); }
-    static public boolean charp (QSobj x) { return ((x != null) && (x instanceof QSchar)); }
-    static public boolean numberp (QSobj x) { return ((x != null) && (x instanceof QSnumber)); }
-      static public boolean integerp (QSobj x) { return ((x != null) && (x instanceof QSinteger)); }
-      static public boolean rationalp (QSobj x) { return ((x != null) && (x instanceof QSrational)); }
-      static public boolean realp (QSobj x) { return ((x != null) && (x instanceof QSreal)); }
-      static public boolean complexp (QSobj x) { return ((x != null) && (x instanceof QScomplex)); }
-    static public boolean stringp (QSobj x) { return ((x != null) && (x instanceof QSstr)); }
-    static public boolean symbolp (QSobj x) { return ((x != null) && (x instanceof QSsym)); }
-    static public boolean vectorp (QSobj x) { return ((x != null) && (x instanceof QSvec)); }
-    static public boolean procp (QSobj x) { return ((x != null) && (x instanceof QSproc)); }
-    static public boolean procedurep (QSobj x) { return ((x != null) && ((x instanceof QSproc) || (x instanceof QSprim))); }
-    static public boolean pairp (QSobj x) { return ((x != null) && (x instanceof QSpair)); }
-    static public boolean continuationp (QSobj x) { return ((x != null) && (x instanceof QScontinuation)); }
+    static public boolean nullp (QSobj x) { return QSnull.p(x); }
+    static public boolean booleanp (QSobj x) { return QSbool.p(x); }
+    static public boolean charp (QSobj x) { return QSchar.p(x); }
+    static public boolean numberp (QSobj x) { return QSnumber.p(x); }
+      static public boolean integerp (QSobj x) { return QSinteger.p(x); }
+      static public boolean rationalp (QSobj x) { return QSrational.p(x); }
+      static public boolean realp (QSobj x) { return QSreal.p(x); }
+      static public boolean complexp (QSobj x) { return QScomplex.p(x); }
+    static public boolean stringp (QSobj x) { return QSstr.p(x); }
+    static public boolean symbolp (QSobj x) { return QSsym.p(x); }
+    static public boolean vectorp (QSobj x) { return QSvec.p(x); }
+    static public boolean procp (QSobj x) { return QSproc.p(x); }
+    static public boolean primp (QSobj x) { return QSprim.p(x); }
+    static public boolean procedurep (QSobj x) { return (QSproc.p(x) || QSprim.p(x)); }
+    static public boolean pairp (QSobj x) { return QSpair.p(x); }
+    static public boolean continuationp (QSobj x) { return QScontinuation.p(x); }
 
     static public boolean listp (QSobj x) { return QSpair.QSlist.p(x); }
 
@@ -232,6 +233,7 @@ class QSsym extends QSobj {
     public int symid () { return _symid; }
     @Override public String repr () { return s.toString(); }
 
+    static public boolean p (QSobj x) { return ((x != null) && (x instanceof QSsym)); }
     static public QSsym make (String symname)
     {
 	return symtree.intern(symname);
