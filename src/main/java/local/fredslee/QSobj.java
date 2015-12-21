@@ -120,13 +120,14 @@ class QSobj extends Object implements IQSobj {
     protected QSstr asStr() { return (QSstr)this; }
     protected QSsym asSym() { return (QSsym)this; }
     protected QSvec asVec() { return (QSvec)this; }
-    //protected QSpair asPair() { return (QSpair)this; }
+    protected QSpair asPair() { return (QSpair)this; }
     //protected QSpair asPair() { if (this instanceof QSpair) return (QSpair)this; else return QSpair.guard; }
     //protected QSpair asPair() { if (this instanceof QSpair) return (QSpair)this; else return null; }
-    protected QSpair asPair() { if (this instanceof QSpair) return (QSpair)this; else return null; }
+    //protected QSpair asPair() { if (this instanceof QSpair) return (QSpair)this; else return null; }
     protected QScontinuation asKont() { return (QScontinuation)this; }
     protected QScontinuation asContinuation() { return (QScontinuation)this; }
 
+/*
     public boolean isNull () { return (this instanceof QSnull); }
     public boolean isBoolean () { return (this instanceof QSbool); }
     public boolean isCharacter () { return (this instanceof QSchar); }
@@ -136,7 +137,42 @@ class QSobj extends Object implements IQSobj {
     public boolean isSymbol () { return (this instanceof QSsym); }
     public boolean isPrimitive () { return (this instanceof QSprim); }
     public boolean isProcedure () { return (this instanceof QSproc); }
-    public boolean isPair() { return (this instanceof QSpair); }
+    public boolean isPair () { return (this instanceof QSpair); }
+
+    public boolean isList () { return (QSpair.p(this) && QSpair.QSlist.p((QSpair)this)); }
+*/
+    public boolean isNull () { return nullp(this); }
+    public boolean isBoolean () { return booleanp(this); }
+    public boolean isCharacter () { return charp(this); }
+    public boolean isNumber () { return numberp(this); }
+    public boolean isVector () { return vectorp(this); }
+    public boolean isString () { return stringp(this); }
+    public boolean isSymbol () { return symbolp(this); }
+    public boolean isPrimitive () { return (this instanceof QSprim); }
+    public boolean isProcedure () { return (this instanceof QSproc); }
+    public boolean isPair () { return pairp(this); }
+    public boolean isContinuation () { return continuationp(this); }
+
+    public boolean isList () { return listp(this); }
+
+
+    /* Type predicates, static. */
+    static public boolean nullp (QSobj x) { return ((x == null) || (x instanceof QSnull)); }
+    static public boolean booleanp (QSobj x) { return ((x != null) && (x instanceof QSbool)); }
+    static public boolean charp (QSobj x) { return ((x != null) && (x instanceof QSchar)); }
+    static public boolean numberp (QSobj x) { return ((x != null) && (x instanceof QSnumber)); }
+      static public boolean integerp (QSobj x) { return ((x != null) && (x instanceof QSinteger)); }
+      static public boolean rationalp (QSobj x) { return ((x != null) && (x instanceof QSrational)); }
+      static public boolean realp (QSobj x) { return ((x != null) && (x instanceof QSreal)); }
+      static public boolean complexp (QSobj x) { return ((x != null) && (x instanceof QScomplex)); }
+    static public boolean stringp (QSobj x) { return ((x != null) && (x instanceof QSstr)); }
+    static public boolean symbolp (QSobj x) { return ((x != null) && (x instanceof QSsym)); }
+    static public boolean vectorp (QSobj x) { return ((x != null) && (x instanceof QSvec)); }
+    static public boolean procedurep (QSobj x) { return ((x != null) && ((x instanceof QSproc) || (x instanceof QSprim))); }
+    static public boolean pairp (QSobj x) { return ((x != null) && (x instanceof QSpair)); }
+    static public boolean continuationp (QSobj x) { return ((x != null) && (x instanceof QScontinuation)); }
+
+    static public boolean listp (QSobj x) { return QSpair.QSlist.p(x); }
 
     static public QSsym intern (String symname) {
 	if (symtree == null) {
@@ -144,6 +180,7 @@ class QSobj extends Object implements IQSobj {
 	}
 	return symtree.intern(symname);
     }
+    // Factory functions sensitive to argument type.
     static public QSobj make () { return new QSnull(); }
     static public QSobj make (boolean b) { return new QSbool(b); }
     static public QSobj make (char c) { return new QSchar(c); }
@@ -161,9 +198,11 @@ class QSobj extends Object implements IQSobj {
         return retval;
       }
     */
+
     static public QSobj vec (int initlen) { return new QSvec(initlen, null); }
     static public QSobj vec (int initlen, QSobj fill) { return new QSvec(initlen, fill); }
-    static public QScons cons (QSobj a, QSobj d) { return new QScons(a,d); }
+    static public QSpair cons (QSobj a, QSobj d) { return new QSpair(a,d); }
+    static public QSpair list (QSobj ... x) { return QSpair.QSlist.make(x); }
 };
 
 
@@ -263,19 +302,119 @@ class QSprim extends QSobj {
 class QSproc extends QSobj {
 };
 
-abstract class QSpair extends QSobj {
+class QSpair extends QSobj {
+    // Guard value to let car and cdr on non-pair return recursible value.
+    static public final QSpair guard = new QSpair(null,null);
+
     QSobj a, d;
-    /*
-    public QSpair (QSobj inita, QSobj initd) {
-        a = inita;
-        d = initd;
-    }
-    public QSpair (QSobj inita) { a = inita; d = null; }
-    */
-    protected void build (QSobj inita, QSobj initd) {
+
+    static class /*QSlist*/QSlist {
+	private static QSpair nextpair (QSpair pair)
+	{
+	    if (pair.cdr() == null)
+		return null;
+	    QSobj next = pair.cdr();
+	    if (QSpair.p(next)) {
+		return (QSpair)next;
+	    } else {
+		return null;
+	    }
+	}
+	static QSpair make (QSobj ... elements) {
+	    QSpair retval = null;
+	    QSpair last = null;
+	    QSpair next = null;
+	    for (QSobj item : elements) {
+		if (retval == null) {
+		    retval = last = next = QSobj.cons(item, null);
+		} else {
+		    next = QSobj.cons(item, null);
+		    last.setcdr(next);
+		    last = next;
+		}
+	    }
+	    return retval;
+	};
+	/* isList() */
+	static boolean p (QSobj root) {
+	    if (root == null) {
+		return true;
+	    }
+	    if (! (root instanceof QSpair)) {
+		return false;
+	    }
+	    QSpair iter = (QSpair)root;
+	    iter = end(iter);
+	    return ((iter == null) || (iter.cdr() == null));
+	};
+	static int length (QSpair root) {
+	    int retval = 0;
+	    QSpair iter = root;
+	    while (iter != null) {
+		retval++;
+		iter = nextpair(iter);
+	    };
+	    return retval;
+	};
+	static QSpair copy (QSpair root) {
+	    QSpair retval = null;
+	    QSpair last = retval;
+	    //QSpair iter = pair();
+	    QSpair iter = root;
+	    while (iter != null) {
+		if (retval == null) {
+		    last = retval = new QSpair(iter.car(), null);
+		} else {
+		    QSpair next = new QSpair(iter.car(), null);
+		    last.setcdr(next);
+		    last = next;
+		}
+	    }
+	    return retval;
+	};
+	/* Return final cons of a list. */
+	static QSpair end (QSpair root) {
+	    QSpair iter = root;
+	    if (iter == null)
+		return null;
+	    while ((iter.cdr() != null) && QSpair.p(iter)) {
+		iter = (QSpair)(iter.cdr());
+	    }
+	    return iter;
+	};
+	/* Return (sub)list starting from nth cons cell; may return null. */
+	static QSpair tail (QSpair root, int idx) {
+	    QSpair retval = root;
+	    QSobj next = null;
+	    int k = idx;
+	    while ((k > 0) && (retval != null)) {
+		retval = nextpair(retval);
+		k--;
+	    }
+	    return retval;
+	};
+	/* Return car of nth cons cells. */
+	static QSobj nth (QSpair root, int idx) {
+	    QSpair sublist = tail(root, idx);
+	    if (sublist != null)
+		return sublist.car();
+	    return null;
+	};
+    };
+    //QSlist list = null;
+    //protected QSpair pair () { return this; }
+
+    static public boolean p (QSobj root) { return (root instanceof QSpair); }
+    static public boolean listp (QSobj root) { return (QSpair.p(root) && QSlist.p((QSpair)root)); }
+
+    public QSpair (QSobj inita, QSobj initd) { build(inita, initd); }
+    public QSpair (QSobj inita) { build(inita, null); }
+    protected void build (QSobj inita, QSobj initd)
+    {
 	a = inita;
 	d = initd;
-    }
+	//list = new QSlist();
+	}
     public QSobj car () { return a; }
     public QSobj cdr () { return d; }
     void setcar (QSobj v) { if (true) a = v; }
@@ -307,55 +446,17 @@ abstract class QSpair extends QSobj {
 	temp.append(")");
 	return temp.toString();
     };
-};
 
-class QScons extends QSpair {
-    // Guard value to let car and cdr on non-pair return recursible value.
-    static public final QScons guard = new QScons(null,null);
+    /* list. */
+    //public QSpair list (QSobj ... elts) { return QSlist.make(elts); }
+    public boolean isList () { return QSlist.p(this); }
+    public int length () { return QSlist.length(this); }
+    public QSpair copy () { return QSlist.copy(this); }
+    public QSobj nth (int idx) { return QSlist.nth(this, idx); }
+    public QSpair tail (int idx) { return QSlist.tail(this, idx); }
+    public QSpair end () { return QSlist.end(this); }
 
-    /*
-    QSobj a, d;
-    public QSpair (QSobj inita, QSobj initd) {
-        a = inita;
-        d = initd;
-    }
-    public QSpair (QSobj inita) { a = inita; d = null; }
-    public QSobj car () { return a; }
-    public QSobj cdr () { return d; }
-    void setcar (QSobj v) { if (true) a = v; }
-    void setcdr (QSobj v) { if (true) d = v; }
-    */
-    public QScons (QSobj inita, QSobj initb) { build(inita, initb); }
-    public QScons (QSobj inita) { build(inita, null); }
-    /*
-    @Override public String toString () {
-	StringBuilder temp = new StringBuilder();
-	temp.append("(");
-	QSobj iter = this;
-	while (iter != null) {
-	    if (! (iter == this)) {
-		temp.append(" ");
-	    }
-	    if (iter instanceof QSpair) {
-		QSpair visitor = iter.asPair();
-		// proper list; stringify and advance.
-		if (visitor.car() != null) {
-		    temp.append(visitor.car().toString());
-		} else {
-		    temp.append("()");
-		}
-		iter = visitor.cdr();
-	    } else {
-		// end of improper list.
-		temp.append(". ");
-		temp.append(iter.toString());
-		iter = null;
-	    }
-	}
-	temp.append(")");
-	return temp.toString();
-    };
-    */
+    /* alist. */
 };
 
 
@@ -441,134 +542,12 @@ class QScontinuation extends QSobj {
 
 
 
-//class QSlist extends QSpair {
-class QSlist extends QSpair {
-    //QSpair wrapped;
-
-    /*
-    boolean empty;
-    public QSlist () { super(null,null); empty = true; }
-    @Override public boolean isNull () { return empty; }
-    public QSlist (QSobj first) { super(first, null); empty = false; }
-    */
-    //public QSlist (QSobj first) { super(first); wrapped = null; }
-    public QSlist (QSobj first) { build(first, null); }
-
-    //private QSpair getSubj ()  { return (wrapped == null) ? this : wrapped; }
-    //private QSpair getSubj ()  { return this; }
-    private QSlist getSubj ()  { return this; }
-
-    @Override public QSobj car () { return getSubj().car(); }
-    @Override public QSobj cdr () { return getSubj().cdr(); }
-    @Override public void setcar (QSobj v) { getSubj().setcar(v); }
-    @Override public void setcdr (QSobj v) { getSubj().setcdr(v); }
-
-    // assumes given a proper list; closest thing to overloading cast operator.
-    static public QSlist fromPair (QScons p) {
-	QSlist retval = new QSlist(null);
-	//retval.wrapped = p;
-	return retval;
-    }
-
-    // shallow copy.
-    public QSpair copy () {
-	QSpair retval = null;
-	QSpair last = retval;
-	QSpair iter = getSubj(); //this;
-	while (iter != null) {
-	    if (retval == null) {
-		last = retval = new QScons(iter.car(), null);
-	    } else {
-		QScons next = new QScons(iter.car(), null);
-		last.setcdr(next);
-		last = next;
-	    }
-	}
-	return (QSlist)retval;
-    };
-    // return final pair of list.
-    public QSpair end () {
-	QSpair retval = getSubj(); //this;
-	while (retval.asPair() != null) {
-	    QSobj next = retval.cdr();
-	    if ((next != null) && (next.isPair())) {
-		retval = next.asPair();
-	    } else {
-		break;
-	    }
-	}
-	return retval;
-    }
-    // whatever value length returns yields something valid for nth.
-    public int length () {
-	int retval = 0;
-	QSpair iter = getSubj(); //this;
-	while (iter != null) {
-	    iter = (iter.cdr()).asPair();
-	    retval++;
-	};
-	return retval;
-    }
-    // return sublist starting at idx-th cons cell.
-    public QSobj tail (int idx) {
-	int k = idx;
-	QSpair iter = getSubj(); //this;
-	while ((k > 0) && (iter != null)) {
-	    iter = (iter.cdr()).asPair();
-	    k--;
-	}
-	return iter;
-    }
-    // return atom at nth position of list; null if out of bounds.
-    public QSobj nth (int idx) {
-	QSpair node = (tail(idx)).asPair();
-	if (node != null) {
-	    return node.car();
-	} else {
-	    return null;
-	}
-    };
-};
-
-
-// associative list, where car is a cons of (key . value).
-/*
-class QSalist extends QSlist {
-    public QSalist (QSobj firstkey, QSobj firstval) {
-	super(null);  // temporarily null.
-	QScons node = new QScons(firstkey, firstval);
-	setcar(node);
-    }
-};
-*/
-class QSalist extends QSpair {
-    static public QSlist make (QSpair firstnode)
-    {
-	QSpair retval;
-	retval = QSobj.cons(firstnode, null);
-	return (QSlist)retval;
-    }
-    static public QSlist make (QSobj firsta, QSobj firstb)
-    {
-	QSpair retval;
-	QScons p0 = QSobj.cons(firsta, firstb);
-	retval = QSobj.cons(p0, null);
-	return (QSlist)retval;
-    }
-
-    public QSalist (QSpair firstnode)
-    {
-	build(firstnode, null);
-    }
-};
-
-
 /*
 root = ( frame1 frame2 frame3 ... )
 frame1 = ( ( var1 . val1 ) ( var2 . val2 ) ... )
 */
 class QSenv extends QSobj {
-    class QSbind extends QScons {
+    class QSbind extends QSpair {
 	public QSbind (QSobj sym, QSobj val) { super(sym, val); }
 	public QSobj sym () { return car(); }
 	public QSobj val () { return cdr(); }
