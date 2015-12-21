@@ -56,7 +56,9 @@ public class TestReader
 
 	apply("  #t", "#t");
 	val = reader0.root;
+	System.out.println("isBoolean " + val.isBoolean());
 	if (val.isBoolean()) {
+	    System.out.println(val.dump());
 	    assertTrue(((QSbool)val).Boolean() == true);
 	}
 

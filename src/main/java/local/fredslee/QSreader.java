@@ -205,10 +205,10 @@ public class QSreader {
 			crumb(1, "token.int: " + i);
 			break;
 		    case SYMBOL:
-		    	if (token == "#t") {
+		    	if (token.equals("#t")) {
 			    val = new QSbool(true);
 			    crumb(1, "token.true");
-			} else if (token == "#f") {
+			} else if (token.equals("#f")) {
 			    val = new QSbool(false);
 			    crumb(1, "token.false");
 			} else {
