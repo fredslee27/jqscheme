@@ -215,7 +215,7 @@ class QSstr extends QSobj {
     static public QSstr make (String s) { return new QSstr(s); }
 };
 
-class QSsym extends QSobj {
+class QSsym extends QSobj implements Comparable<QSsym> {
     static QSsymtree symtree = new QSsymtree();
 
     String s;
@@ -229,6 +229,9 @@ class QSsym extends QSobj {
     public String name () { return s; }
     public int symid () { return _symid; }
     @Override public String repr () { return s.toString(); }
+
+    // Comparable.compareTo
+    @Override public int compareTo (QSsym other) { return (other._symid - _symid); }
 
     static public boolean p (QSobj x) { return ((x != null) && (x instanceof QSsym)); }
     static public QSsym make (String symname)
@@ -698,14 +701,101 @@ root = ( frame1 frame2 frame3 ... )
 frame1 = ( ( var1 . val1 ) ( var2 . val2 ) ... )
 */
 class QSenv extends QSobj {
-    class QSbind extends QSpair {
-	public QSbind (QSobj sym, QSobj val) { super(sym, val); }
-	public QSobj sym () { return car(); }
-	public QSobj val () { return cdr(); }
-    };
+    public static QSobj blackhole = new QSobj();
+    ArrayList< TreeMap<QSsym,QSobj> > env;
+    //QSobj envroot;
 
-    QSobj envroot;
-
-    public QSenv (QSobj initenv) { envroot = initenv; }
+    public QSenv () {
+	env = new ArrayList< TreeMap<QSsym,QSobj> >();
+	newframe();
+	//envroot = initenv
+    }
+    public QSenv (QSenv closure) {
+	env = (ArrayList< TreeMap<QSsym,QSobj> >)closure.env.clone();
+	newframe();
+    }
+    public TreeMap<QSsym,QSobj> newframe ()
+    {
+	TreeMap<QSsym,QSobj> frame = new TreeMap<QSsym,QSobj>();
+	env.add(0, frame);
+	return frame;
+    }
+    // Returns bound value of symbol.
+    public QSobj resolve (QSsym sym, boolean recurse)
+    {
+	QSobj retval = null;
+	boolean found = false;
+	for (TreeMap<QSsym,QSobj> frameiter : env) {
+	    if (frameiter.containsKey(sym)) {
+		retval = frameiter.get(sym);
+		return retval;
+	    }
+	    if (! recurse) {
+		// TODO: throw exception.
+		return null;
+	    }
+	}
+	// TODO: throw exception.
+	return null;
+    }
+    // Ensure an uninitialized binding exists in current env frame.
+    public QSobj freshen (QSsym sym)
+    {
+	TreeMap<QSsym,QSobj> frame;
+	if (env.size() == 0)
+	{
+	    frame = newframe();
+	}
+	else
+	{
+	    frame = env.get(0);
+	    if (frame.containsKey(sym))
+	    {
+		// then create new frame to ensure shadowing.
+		frame = newframe();
+	    }
+	}
+	frame.put(sym, blackhole);
+	return null;
+    }
+    public QSobj bind (QSsym sym, QSobj val)
+    {
+	TreeMap<QSsym,QSobj> frame;
+	if (env.size() == 0)
+	{
+	    return null;
+	}
+	else
+	{
+	    frame = env.get(0);
+	    if (frame.containsKey(sym))
+	    {
+		frame.put(sym, val);
+	    }
+	    else
+	    {
+		return null;
+	    }
+	}
+	return null;
+    }
+    @Override public String toString ()
+    {
+	StringBuilder ss = new StringBuilder();
+	ss.append("(");
+	for (TreeMap<QSsym,QSobj> frameiter : env) {
+	    ss.append("(");
+	    for (QSsym symiter : frameiter.keySet()) {
+	        ss.append("(");
+		ss.append(symiter.repr());
+		ss.append(" . ");
+		ss.append(frameiter.get(symiter));
+		ss.append(")");
+	    }
+	    ss.append(")");
+	}
+	ss.append(")");
+	return ss.toString();
+    }
 };
 

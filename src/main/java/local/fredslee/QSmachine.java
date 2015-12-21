@@ -61,6 +61,22 @@ public class QSmachine {
     public void setS (QSobj val) { s = val; }
     public void setK (QSobj val) { k = val; }
 
+    public QSobj C () { return c; }
+    public QSenv E () { return e; }
+    public QSobj S () { return s; }
+    public QSobj K () { return k; }
+    public QSobj A () { return a; }
+
+    public void reset ()
+    {
+	c = null;
+	//e = QSenv.standard();
+	e = null;
+	s = null;
+	k = null;
+	a = null;
+    }
+
 /*
     public int applykont (QScontinuation kont, QSobj ans) {
 	if (kont == null) {
