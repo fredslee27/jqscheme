@@ -123,6 +123,8 @@ public class QSmachine {
 	    // evaluate as code.
 	} else if (c.isSymbol()) {
 	    // evaluate as variable.
+	    a = e.resolve(c.asSym(), true);
+	    // cycle_return();
 	} else {
 	    // resolve to self.
 	    a = c;

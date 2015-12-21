@@ -81,5 +81,8 @@ public class TestEnv
 	val0 = env.resolve(sym0, false);
 	System.out.println("resolve1(" + sym0 + ") = " + val0);
 	apply(val0, "null");
+
+	QSenv env6 = QSenv.standard(6);
+	System.out.println("stdenv.6 = " + env6);
     }
 }

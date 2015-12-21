@@ -53,6 +53,15 @@ public class TestMachine
 
 	qsobj = QSnumber.make(36);
 	machine.setC(qsobj);
+	System.out.println("running c=" + machine.C());
+	machine.cycle();
+	System.out.println("a=" + machine.A());
+
+	machine.reset();
+	machine.setE(QSenv.standard6());
+	qsobj = QSsym.intern("revision");
+	machine.setC(qsobj);
+	System.out.println("running c=" + machine.C());
 	machine.cycle();
 	System.out.println("a=" + machine.A());
     }

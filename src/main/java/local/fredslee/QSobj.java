@@ -701,8 +701,10 @@ root = ( frame1 frame2 frame3 ... )
 frame1 = ( ( var1 . val1 ) ( var2 . val2 ) ... )
 */
 class QSenv extends QSobj {
+    public static class RawEnv extends ArrayList< TreeMap<QSsym,QSobj> > { }
     public static QSobj blackhole = new QSobj();
     ArrayList< TreeMap<QSsym,QSobj> > env;
+//    public static ArrayList< TreeMap<QSsym,QSobj> > standard = build_stdenv(6);
     //QSobj envroot;
 
     public QSenv () {
@@ -779,6 +781,30 @@ class QSenv extends QSobj {
 	}
 	return null;
     }
+    // Ensure binding in current environment frame.
+    public QSobj define (QSsym sym, QSobj val)
+    {
+	TreeMap<QSsym,QSobj> frame;
+	if (env.size() == 0)
+	{
+	    freshen(sym);
+	    bind(sym, val);
+	}
+	else
+	{
+	    frame = env.get(0);
+	    if (frame.containsKey(sym))
+	    {
+		bind(sym, val);
+	    }
+	    else
+	    {
+		freshen(sym);
+		bind(sym, val);
+	    }
+	}
+	return null;
+    }
     @Override public String toString ()
     {
 	StringBuilder ss = new StringBuilder();
@@ -797,5 +823,51 @@ class QSenv extends QSobj {
 	ss.append(")");
 	return ss.toString();
     }
+
+
+/*
+    // Standard RnRS environments.
+    public static class standard {
+	public standard () { rev6(); }
+	public standard (int revision)
+	{
+	    rev6();
+	}
+	public void rev6 ()
+	{
+	    define(QSobj.intern("revision"), QSobj.make(6));
+	};
+    };
+*/
+
+/*
+    // Build R6RS standard environment.
+    public static ArrayList< TreeMap<QSsym,QSobj> > standard6 ()
+    {
+	ArrayList< TreeMap<QSsym,QSobj> > retval = new ArrayList< TreeMap<QSsym,QSobj> >();
+	retval.put(QSobj.intern("revision"), QSobj.make(6));
+	return retval;
+    }
+
+    // Build standard environment for specificied RnRS revision.
+    public static ArrayList< TreeMap<QSsym,QSobj> > standard (int revision)
+    {
+	return standard6();
+    }
+*/
+    // Build R6RS standard environment.
+    public static QSenv standard6 ()
+    {
+	QSenv retval = new QSenv();
+	retval.define(QSobj.intern("revision"), QSobj.make(6));
+	return retval;
+    }
+
+    // Build standard environment for specificied RnRS revision.
+    public static QSenv standard (int revision)
+    {
+	return standard6();
+    }
+
 };
 
