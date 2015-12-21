@@ -27,6 +27,7 @@ import java.util.TreeMap;
 import java.lang.*;
 
 interface IQSobj {
+    // Generate string version of object recognizable by Scheme reader.
     public String repr () throws Exception;
 };
 
@@ -39,7 +40,7 @@ class QSobj extends Object implements IQSobj {
 
     public QSobj () {
     }
-    @Override public String repr () throws Exception { return "#<QSobject>"; }
+    @Override public String repr () throws Exception { return "#<QSobject " + this.getClass() + ">"; }
     @Override public String toString () {
 	try {
 	    return repr();
@@ -90,6 +91,7 @@ class QSobj extends Object implements IQSobj {
         }
     }
 
+    // Type casting.
     public QSnull asNull () { return (QSnull)this; }
     public QSbool asBool () { return (QSbool)this; }
     public QSchar asChar () { return (QSchar)this; }
@@ -101,26 +103,11 @@ class QSobj extends Object implements IQSobj {
     public QSsym asSym() { return (QSsym)this; }
     public QSvec asVec() { return (QSvec)this; }
     public QSpair asPair() { return (QSpair)this; }
-    //public QSpair asPair() { if (this instanceof QSpair) return (QSpair)this; else return QSpair.guard; }
-    //public QSpair asPair() { if (this instanceof QSpair) return (QSpair)this; else return null; }
-    //public QSpair asPair() { if (this instanceof QSpair) return (QSpair)this; else return null; }
     public QScontinuation asKont() { return (QScontinuation)this; }
     public QScontinuation asContinuation() { return (QScontinuation)this; }
 
-/*
-    public boolean isNull () { return (this instanceof QSnull); }
-    public boolean isBoolean () { return (this instanceof QSbool); }
-    public boolean isCharacter () { return (this instanceof QSchar); }
-    public boolean isNumber () { return (this instanceof QSnumber); }
-    public boolean isVector () { return (this instanceof QSvec); }
-    public boolean isString () { return (this instanceof QSstr); }
-    public boolean isSymbol () { return (this instanceof QSsym); }
-    public boolean isPrimitive () { return (this instanceof QSprim); }
-    public boolean isProcedure () { return (this instanceof QSproc); }
-    public boolean isPair () { return (this instanceof QSpair); }
 
-    public boolean isList () { return (QSpair.p(this) && QSpair.QSlist.p((QSpair)this)); }
-*/
+    // Type predicates, instance.
     public boolean isNull () { return nullp(this); }
     public boolean isBoolean () { return booleanp(this); }
     public boolean isCharacter () { return charp(this); }
@@ -268,7 +255,6 @@ class QSvec extends QSobj {
     }
     public void fill (QSobj v) {for(int i=0;i<data.length;i++){data[i]=v;}}
     @Override public String repr () {
-//        return "#<vector " + data.length + ">";
 	StringBuilder ss = new StringBuilder();
 	ss.append("#(");
 	for (int i = 0; i < length(); i++) {
