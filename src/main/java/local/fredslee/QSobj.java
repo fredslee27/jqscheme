@@ -183,14 +183,14 @@ class QSobj extends Object implements IQSobj {
     }
     // Factory functions sensitive to argument type.
     //static public QSobj make () { return new QSnull(); }
-    static public QSobj make () { return qsnull; }
-    static public QSobj make (boolean b) { return new QSbool(b); }
-    static public QSobj make (char c) { return new QSchar(c); }
-    static public QSobj make (int i) { return new QSinteger(i); }
-    static public QSobj make (double f) { return new QSreal(f); }
-    static public QSobj make (int p, int q) { return new QSrational(p,q); }
-    static public QSobj make (double a, double b) { return new QScomplex(a,b); }
-    static public QSobj make (String s) { return new QSstr(s); }
+    static public QSobj make () { return QSnull.make(); }
+    static public QSobj make (boolean b) { return QSbool.make(b); }
+    static public QSobj make (char c) { return QSchar.make(c); }
+    static public QSobj make (int i) { return QSinteger.make(i); }
+    static public QSobj make (double f) { return QSreal.make(f); }
+    static public QSobj make (int p, int q) { return QSrational.make(p,q); }
+    static public QSobj make (double a, double b) { return QScomplex.make(a,b); }
+    static public QSobj make (String s) { return QSstr.make(s); }
     /*
       static public QSobj make (QSobj[] elts) {
         QSvec retval = new QSvec(elts.length);
@@ -201,9 +201,9 @@ class QSobj extends Object implements IQSobj {
       }
     */
 
-    static public QSobj vec (int initlen) { return new QSvec(initlen, null); }
-    static public QSobj vec (int initlen, QSobj fill) { return new QSvec(initlen, fill); }
-    static public QSpair cons (QSobj a, QSobj d) { return new QSpair(a,d); }
+    static public QSobj vec (int initlen) { return QSvec.make(initlen, null); }
+    static public QSobj vec (int initlen, QSobj fill) { return QSvec.make(initlen, fill); }
+    static public QSpair cons (QSobj a, QSobj d) { return QSpair.make(a,d); }
     static public QSpair list (QSobj ... x) { return QSpair.QSlist.make(x); }
 };
 

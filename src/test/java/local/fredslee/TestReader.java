@@ -55,10 +55,10 @@ public class TestReader
 	System.out.println("----");
 
 	apply("  #t", "#t");
-
-	QSreader reader0 = new QSreader();
-	reader0.parse("#t");
-	val = reader0.p
+	val = reader0.root;
+	if (val.isBoolean()) {
+	    assertTrue(((QSbool)val).Boolean() == true);
+	}
 
 	System.out.println("----");
 
