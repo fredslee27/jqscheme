@@ -111,22 +111,22 @@ class QSobj extends Object implements IQSobj {
         }
     }
 
-    protected QSnull asNull () { return (QSnull)this; }
-    protected QSbool asBool () { return (QSbool)this; }
-    protected QSchar asChar () { return (QSchar)this; }
-    protected QSinteger asInteger() { return (QSinteger)this; }
-    protected QSreal asReal() { return (QSreal)this; }
-    protected QSrational asRational() { return (QSrational)this; }
-    protected QScomplex asComplex() { return (QScomplex)this; }
-    protected QSstr asStr() { return (QSstr)this; }
-    protected QSsym asSym() { return (QSsym)this; }
-    protected QSvec asVec() { return (QSvec)this; }
-    protected QSpair asPair() { return (QSpair)this; }
-    //protected QSpair asPair() { if (this instanceof QSpair) return (QSpair)this; else return QSpair.guard; }
-    //protected QSpair asPair() { if (this instanceof QSpair) return (QSpair)this; else return null; }
-    //protected QSpair asPair() { if (this instanceof QSpair) return (QSpair)this; else return null; }
-    protected QScontinuation asKont() { return (QScontinuation)this; }
-    protected QScontinuation asContinuation() { return (QScontinuation)this; }
+    public QSnull asNull () { return (QSnull)this; }
+    public QSbool asBool () { return (QSbool)this; }
+    public QSchar asChar () { return (QSchar)this; }
+    public QSinteger asInteger() { return (QSinteger)this; }
+    public QSreal asReal() { return (QSreal)this; }
+    public QSrational asRational() { return (QSrational)this; }
+    public QScomplex asComplex() { return (QScomplex)this; }
+    public QSstr asStr() { return (QSstr)this; }
+    public QSsym asSym() { return (QSsym)this; }
+    public QSvec asVec() { return (QSvec)this; }
+    public QSpair asPair() { return (QSpair)this; }
+    //public QSpair asPair() { if (this instanceof QSpair) return (QSpair)this; else return QSpair.guard; }
+    //public QSpair asPair() { if (this instanceof QSpair) return (QSpair)this; else return null; }
+    //public QSpair asPair() { if (this instanceof QSpair) return (QSpair)this; else return null; }
+    public QScontinuation asKont() { return (QScontinuation)this; }
+    public QScontinuation asContinuation() { return (QScontinuation)this; }
 
 /*
     public boolean isNull () { return (this instanceof QSnull); }
@@ -216,6 +216,7 @@ class QSnull extends QSobj {
     //@Override public String repr () { return "'()"; }
     @Override public String repr () { return "()"; }
 
+    static public boolean p (QSobj x) { return ((x == null) || (x == singleton)); }
     static public QSnull make () { return singleton; }
 };
 
@@ -226,6 +227,7 @@ class QSbool extends QSobj {
     public Boolean Boolean () { return new Boolean(b); }
     @Override public String repr () { return (b ? "#t" : "f"); }
 
+    static public boolean p (QSobj x) { return ((x != null) && (x instanceof QSbool)); }
     static public QSbool make (boolean b) { return new QSbool(b); }
 };
 
@@ -235,6 +237,7 @@ class QSchar extends QSobj {
     public Character Character () { return Character.valueOf(c); }
     @Override public String repr () { return "#\\" + c; }
 
+    static public boolean p (QSobj x) { return ((x != null) && (x instanceof QSchar)); }
     static public QSchar make (char c) { return new QSchar(c); }
 };
 
@@ -244,6 +247,7 @@ class QSstr extends QSobj {
     public String String () { return new String(s); }
     @Override public String repr () { return "\"" + s.toString() + "\""; }
 
+    static public boolean p (QSobj x) { return ((x != null) && (x instanceof QSstr)); }
     static public QSstr make (String s) { return new QSstr(s); }
 };
 
@@ -307,6 +311,7 @@ class QSvec extends QSobj {
 	return ss.toString();
     }
 
+    static public boolean p (QSobj x) { return ((x != null) && (x instanceof QSvec)); }
     static public QSvec make (int k) { return new QSvec(k); }
     static public QSvec make (int k, QSobj x) { return new QSvec(k, x); }
     static public QSvec make (QSobj ... elts)
@@ -321,9 +326,12 @@ class QSvec extends QSobj {
 
 
 class QSprim extends QSobj {
+
+    static public boolean p (QSobj x) { return ((x != null) && (x instanceof QSprim)); }
 };
 
 class QSproc extends QSobj {
+    static public boolean p (QSobj x) { return ((x != null) && (x instanceof QSproc)); }
 };
 
 class QSpair extends QSobj {
@@ -359,7 +367,7 @@ class QSpair extends QSobj {
 	    }
 	    return retval;
 	};
-	/* isList() */
+	// isList()
 	static boolean p (QSobj root) {
 	    if (root == null) {
 		return true;
@@ -380,6 +388,7 @@ class QSpair extends QSobj {
 	    };
 	    return retval;
 	};
+	// shallow copy.
 	static QSpair copy (QSpair root) {
 	    QSpair retval = null;
 	    QSpair last = retval;
@@ -396,7 +405,7 @@ class QSpair extends QSobj {
 	    }
 	    return retval;
 	};
-	/* Return final cons of a list. */
+	// Return final cons of a list.
 	static QSpair end (QSpair root) {
 	    QSpair iter = root;
 	    if (iter == null)
@@ -406,7 +415,7 @@ class QSpair extends QSobj {
 	    }
 	    return iter;
 	};
-	/* Return (sub)list starting from nth cons cell; may return null. */
+	// Return (sub)list starting from nth cons cell; may return null.
 	static QSpair tail (QSpair root, int idx) {
 	    QSpair retval = root;
 	    QSobj next = null;
@@ -417,7 +426,7 @@ class QSpair extends QSobj {
 	    }
 	    return retval;
 	};
-	/* Return car of nth cons cells. */
+	// Return car of nth cons cells.
 	static QSobj nth (QSpair root, int idx) {
 	    QSpair sublist = tail(root, idx);
 	    if (sublist != null)
@@ -427,10 +436,6 @@ class QSpair extends QSobj {
     };
     //QSlist list = null;
     //protected QSpair pair () { return this; }
-
-    static public boolean p (QSobj root) { return (root instanceof QSpair); }
-    static public boolean listp (QSobj root) { return (QSpair.p(root) && QSlist.p((QSpair)root)); }
-    static public QSpair make (QSobj a, QSobj d) { return new QSpair(a,d); }
 
     public QSpair (QSobj inita, QSobj initd) { build(inita, initd); }
     public QSpair (QSobj inita) { build(inita, null); }
@@ -482,6 +487,11 @@ class QSpair extends QSobj {
     public QSpair end () { return QSlist.end(this); }
 
     /* alist. */
+
+
+    static public boolean p (QSobj root) { return (root instanceof QSpair); }
+    static public boolean listp (QSobj root) { return (QSpair.p(root) && QSlist.p((QSpair)root)); }
+    static public QSpair make (QSobj a, QSobj d) { return new QSpair(a,d); }
 };
 
 
@@ -497,6 +507,7 @@ class QSnumber extends QSobj {
 	throw new Exception("(Number base class)");
     }
 
+    static public boolean p (QSobj x) { return ((x != null) && (x instanceof QSnumber)); }
     static public QSnumber make (int i) { return new QSinteger(i); }
     static public QSnumber make (double f) { return new QSreal(f); }
     static public QSnumber make (int p, int q) { return new QSrational(p,q); }
@@ -510,6 +521,7 @@ class QSinteger extends QSnumber {
     @Override public boolean isInteger () { return true; }
     @Override public String repr () { return Integer.toString(i); }
 
+    static public boolean p (QSobj x) { return ((x != null) && (x instanceof QSinteger)); }
     static public QSinteger make (int i) { return new QSinteger(i); }
 };
 
@@ -520,6 +532,7 @@ class QSreal extends QSnumber {
     @Override public boolean isReal () { return true; }
     @Override public String repr () { return Double.toString(f); }
 
+    static public boolean p (QSobj x) { return ((x != null) && (x instanceof QSreal)); }
     static public QSreal make (double f) { return new QSreal(f); }
 };
 
@@ -533,6 +546,7 @@ class QSrational extends QSnumber {
     @Override public boolean isRational () { return true; }
     @Override public String repr () { return p + "/" + q; }
 
+    static public boolean p (QSobj x) { return ((x != null) && (x instanceof QSrational)); }
     static public QSrational make (int p, int q) { return new QSrational(p,q); }
 };
 
@@ -545,6 +559,7 @@ class QScomplex extends QSnumber {
     public double imag () { return b; }
     @Override public String repr () { return a + "+" + b + "i"; }
 
+    static public boolean p (QSobj x) { return ((x != null) && (x instanceof QScomplex)); }
     static public QScomplex make (double a, double b) { return new QScomplex(a,b); }
 };
 
@@ -577,6 +592,7 @@ class QScontinuation extends QSobj {
     public boolean isCall () { return false; }
     public boolean isSel () { return false; }
 
+    static public boolean p (QSobj x) { return ((x != null) && (x instanceof QScontinuation)); }
     static public QScontinuation make (QSobj v, QSobj e, QSobj k)
     {
 	return new QScontinuation(v,e,k);
@@ -597,6 +613,7 @@ class QSenv extends QSobj {
     };
 
     QSobj envroot;
+
     public QSenv (QSobj initenv) { envroot = initenv; }
 };
 
