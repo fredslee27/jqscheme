@@ -10,6 +10,8 @@ import junit.framework.TestSuite;
 public class TestReader
     extends TestCase
 {
+    QSreader reader0;
+
     /**
      * Create the test case
      *
@@ -18,6 +20,7 @@ public class TestReader
     public TestReader ( String testName )
     {
         super( testName );
+	reader0 = new QSreader();
     }
 
     /**
@@ -30,7 +33,7 @@ public class TestReader
 
     public void apply (String srctext, String expect)
     {
-	QSreader reader0 = new QSreader();
+	reader0 = new QSreader();
 	reader0.parse(srctext);
         String repr = reader0.root.toString();
 	System.out.println("src=\"" + srctext + "\" -> " + repr + " vs expect=" + expect + " => " + expect.equals(repr));
@@ -52,6 +55,10 @@ public class TestReader
 	System.out.println("----");
 
 	apply("  #t", "#t");
+
+	QSreader reader0 = new QSreader();
+	reader0.parse("#t");
+	val = reader0.p
 
 	System.out.println("----");
 

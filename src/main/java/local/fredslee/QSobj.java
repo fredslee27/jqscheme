@@ -35,6 +35,7 @@ interface IQSprimitive {
 };
 
 class QSobj extends Object implements IQSobj {
+    static QSnull qsnull = QSnull.singleton;
 //  static TreeSet<QSsym> symtree = null;
     static QSsymtree symtree = null;
     static QSprimreg primreg = null;
@@ -181,7 +182,8 @@ class QSobj extends Object implements IQSobj {
 	return symtree.intern(symname);
     }
     // Factory functions sensitive to argument type.
-    static public QSobj make () { return new QSnull(); }
+    //static public QSobj make () { return new QSnull(); }
+    static public QSobj make () { return qsnull; }
     static public QSobj make (boolean b) { return new QSbool(b); }
     static public QSobj make (char c) { return new QSchar(c); }
     static public QSobj make (int i) { return new QSinteger(i); }
@@ -207,9 +209,14 @@ class QSobj extends Object implements IQSobj {
 
 
 class QSnull extends QSobj {
-    public QSnull () { }
+    public static QSnull singleton = new QSnull();
+
+    //public QSnull () { }
+    private QSnull () { }
     //@Override public String repr () { return "'()"; }
     @Override public String repr () { return "()"; }
+
+    static public QSnull make () { return singleton; }
 };
 
 class QSbool extends QSobj {
@@ -218,6 +225,8 @@ class QSbool extends QSobj {
     public QSbool (int initb) { b = (initb != 0); }
     public Boolean Boolean () { return new Boolean(b); }
     @Override public String repr () { return (b ? "#t" : "f"); }
+
+    static public QSbool make (boolean b) { return new QSbool(b); }
 };
 
 class QSchar extends QSobj {
@@ -225,6 +234,8 @@ class QSchar extends QSobj {
     public QSchar (char initc) { c = initc; }
     public Character Character () { return Character.valueOf(c); }
     @Override public String repr () { return "#\\" + c; }
+
+    static public QSchar make (char c) { return new QSchar(c); }
 };
 
 class QSstr extends QSobj {
@@ -232,6 +243,8 @@ class QSstr extends QSobj {
     public QSstr (String inits) { s = inits; }
     public String String () { return new String(s); }
     @Override public String repr () { return "\"" + s.toString() + "\""; }
+
+    static public QSstr make (String s) { return new QSstr(s); }
 };
 
 class QSsym extends QSobj {
@@ -292,6 +305,17 @@ class QSvec extends QSobj {
 	}
 	ss.append(")");
 	return ss.toString();
+    }
+
+    static public QSvec make (int k) { return new QSvec(k); }
+    static public QSvec make (int k, QSobj x) { return new QSvec(k, x); }
+    static public QSvec make (QSobj ... elts)
+    {
+	QSvec retval = new QSvec(elts.length, null);
+	for (int i = 0; i < elts.length; i++) {
+	    retval.setq(i, elts[i]);
+	}
+	return retval;
     }
 }
 
@@ -406,6 +430,7 @@ class QSpair extends QSobj {
 
     static public boolean p (QSobj root) { return (root instanceof QSpair); }
     static public boolean listp (QSobj root) { return (QSpair.p(root) && QSlist.p((QSpair)root)); }
+    static public QSpair make (QSobj a, QSobj d) { return new QSpair(a,d); }
 
     public QSpair (QSobj inita, QSobj initd) { build(inita, initd); }
     public QSpair (QSobj inita) { build(inita, null); }
@@ -471,6 +496,11 @@ class QSnumber extends QSobj {
     @Override public String repr () throws Exception {
 	throw new Exception("(Number base class)");
     }
+
+    static public QSnumber make (int i) { return new QSinteger(i); }
+    static public QSnumber make (double f) { return new QSreal(f); }
+    static public QSnumber make (int p, int q) { return new QSrational(p,q); }
+    static public QSnumber make (double a, double b) { return new QScomplex(a,b); }
 };
 
 class QSinteger extends QSnumber {
@@ -479,6 +509,8 @@ class QSinteger extends QSnumber {
     public Integer Integer() { return new Integer(i); }
     @Override public boolean isInteger () { return true; }
     @Override public String repr () { return Integer.toString(i); }
+
+    static public QSinteger make (int i) { return new QSinteger(i); }
 };
 
 class QSreal extends QSnumber {
@@ -487,6 +519,8 @@ class QSreal extends QSnumber {
     public Double Double() { return new Double(f); }
     @Override public boolean isReal () { return true; }
     @Override public String repr () { return Double.toString(f); }
+
+    static public QSreal make (double f) { return new QSreal(f); }
 };
 
 class QSrational extends QSnumber {
@@ -498,6 +532,8 @@ class QSrational extends QSnumber {
     public int denominator () { return q; }
     @Override public boolean isRational () { return true; }
     @Override public String repr () { return p + "/" + q; }
+
+    static public QSrational make (int p, int q) { return new QSrational(p,q); }
 };
 
 class QScomplex extends QSnumber {
@@ -508,6 +544,8 @@ class QScomplex extends QSnumber {
     public double real () { return a; }
     public double imag () { return b; }
     @Override public String repr () { return a + "+" + b + "i"; }
+
+    static public QScomplex make (double a, double b) { return new QScomplex(a,b); }
 };
 
 
@@ -538,6 +576,11 @@ class QScontinuation extends QSobj {
     public boolean isLet () { return false; }
     public boolean isCall () { return false; }
     public boolean isSel () { return false; }
+
+    static public QScontinuation make (QSobj v, QSobj e, QSobj k)
+    {
+	return new QScontinuation(v,e,k);
+    }
 };
 
 

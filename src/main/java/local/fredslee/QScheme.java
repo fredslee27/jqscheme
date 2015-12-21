@@ -8,7 +8,8 @@ class QScheme {
 	QSobj obj0;
 
 	//obj0 = QSobj.make();
-	obj0 = new QSnull();
+	//obj0 = new QSnull();
+	obj0 = QSnull.singleton;
 	//System.out.println("obj1 = (" + obj1.getClass() + ")" + obj1);
 	System.out.println("obj0 = " + obj0.dump());
 

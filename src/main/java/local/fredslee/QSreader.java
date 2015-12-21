@@ -85,13 +85,14 @@ public class QSreader {
     static private String WHITESPACE = " \t\r\n";
     static private String EOL = "\r\n";
     static private String COMMENT = ";";
-    protected boolean isListOpen (char ch) { return LIST_OPEN.indexOf(ch) > -1; }
-    protected boolean isListClose (char ch) { return LIST_CLOSE.indexOf(ch) > -1; }
-    protected boolean isNumeric (char ch) { return NUMERIC.indexOf(ch) > -1; }
-    protected boolean isNumericInit (char ch) { return NUMBER_INIT.indexOf(ch) > -1; }
-    protected boolean isWhitespace (char ch) { return WHITESPACE.indexOf(ch) > -1; }
-    protected boolean isComment (char ch) { return COMMENT.indexOf(ch) > -1; }
-    protected boolean isEndOfLine (char ch) { return EOL.indexOf(ch) > -1; }
+    protected boolean isChr (String chset, char ch) { return chset.indexOf(ch) > -1; }
+    protected boolean isListOpen (char ch) { return isChr(LIST_OPEN, ch); }
+    protected boolean isListClose (char ch) { return isChr(LIST_CLOSE, ch); }
+    protected boolean isNumeric (char ch) { return isChr(NUMERIC, ch); }
+    protected boolean isNumericInit (char ch) { return isChr(NUMBER_INIT, ch); }
+    protected boolean isWhitespace (char ch) { return isChr(WHITESPACE, ch); }
+    protected boolean isComment (char ch) { return isChr(COMMENT, ch); }
+    protected boolean isEndOfLine (char ch) { return isChr(EOL, ch); }
     protected boolean isSymbolic (char ch) {
 	if (isListOpen(ch)) return false;
 	if (isListClose(ch)) return false;
@@ -229,7 +230,8 @@ public class QSreader {
 			ctx = build.pop();
 			val = ctx.root;
 			if (val == null)
-			    val = new QSnull();
+			    //val = new QSnull();
+			    val = QSobj.make();
 			break;
 		    default:
 			break;
