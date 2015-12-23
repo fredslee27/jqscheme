@@ -146,6 +146,7 @@ class QSobj extends Object implements IQSobj {
     static public boolean procedurep (QSobj x) { return (QSproc.p(x) || QSprim.p(x)); }
     static public boolean pairp (QSobj x) { return QSpair.p(x); }
     static public boolean continuationp (QSobj x) { return QScontinuation.p(x); }
+    static public boolean kontp (QSobj x) { return QScontinuation.p(x); }
 
     static public boolean listp (QSobj x) { return QSpair.QSlist.p(x); }
 
@@ -170,6 +171,11 @@ class QSobj extends Object implements IQSobj {
     static public QSobj vec (int initlen, QSobj fill) { return QSvec.make(initlen, fill); }
     static public QSpair cons (QSobj a, QSobj d) { return QSpair.make(a,d); }
     static public QSpair list (QSobj ... x) { return QSpair.QSlist.make(x); }
+    static public QSproc lambda (QSpair parmlist, QSobj body, QSenv env)
+    {
+	return QSproc.make(parmlist, body, env);
+    }
+
 };
 
 
@@ -318,7 +324,27 @@ class QSprim extends QSobj implements IQSprimitive {
 
 
 class QSproc extends QSobj {
+    QSpair parm;  // formal parameter list.
+    QSobj body;  // could be a list or an atom.
+    QSenv env;  // closure environment.
+
+    public QSproc (QSpair parameters, QSobj body, QSenv env)
+    {
+	parm = parameters;
+	this.body = body;
+	this.env = env;
+    }
+    public QSpair getParameters () { return parm; }
+    public QSobj getBody () { return body; }
+    public QSenv getEnv () { return env; }
+
+
     static public boolean p (QSobj x) { return ((x != null) && (x instanceof QSproc)); }
+    static QSproc make (QSpair parm, QSobj body, QSenv env)
+    {
+	return new QSproc(parm, body, env);
+    }
+
 };
 
 

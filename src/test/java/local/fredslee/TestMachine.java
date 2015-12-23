@@ -51,12 +51,14 @@ public class TestMachine
 
 	machine.reset();
 
+	System.out.println("# resolving int:36");
 	qsobj = QSnumber.make(36);
 	machine.setC(qsobj);
 	System.out.println("running c=" + machine.C());
 	machine.cycle();
 	System.out.println("a=" + machine.A());
 
+	System.out.println("# resolving variable:'revision'");
 	machine.reset();
 	machine.setE(QSenv.standard6());
 	qsobj = QSsym.intern("revision");
@@ -64,5 +66,37 @@ public class TestMachine
 	System.out.println("running c=" + machine.C());
 	machine.cycle();
 	System.out.println("a=" + machine.A());
+
+	System.out.println("# executing list:(__dump__ 86)");
+	machine.reset();
+	qsobj = QSpair.QSlist.make(machine.primitives.dump, QSobj.make(86));
+	machine.setE(QSenv.standard6());
+	machine.setC(qsobj);
+	machine.cycle();
+	System.out.println("a=" + machine.A());
+
+	System.out.println(machine);
+
+	System.out.println("# executing list:(__boolean_p__ true)");
+	machine.reset();
+	qsobj = QSpair.QSlist.make(machine.primitives.boolean_p, QSobj.make(true));
+	machine.setC(qsobj);
+	machine.cycle();
+	System.out.println("a=" + machine.A());
+
+	System.out.println("# executing list:(__boolean_p__ false)");
+	machine.reset();
+	qsobj = QSpair.QSlist.make(machine.primitives.boolean_p, QSobj.make(false));
+	machine.setC(qsobj);
+	machine.cycle();
+	System.out.println("a=" + machine.A());
+
+	System.out.println("# executing list:(__boolean_p__ 9)");
+	machine.reset();
+	qsobj = QSpair.QSlist.make(machine.primitives.boolean_p, QSobj.make(9));
+	machine.setC(qsobj);
+	machine.cycle();
+	System.out.println("a=" + machine.A());
+
     }
 }
