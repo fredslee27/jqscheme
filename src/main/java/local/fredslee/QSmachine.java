@@ -142,14 +142,22 @@ public class QSmachine {
 	return 0;
     }
 
+    */
+
     public int cycle_applykont (QSobj ans) {
-	return applykont((QScontinuation)k, ans);
+	//return applykont((QScontinuation)k, ans);
+	int retval = 0;
+	if (k != null)
+	{
+	    retval = k.applykont(this);
+	}
+	return retval;
     }
+
     public int cycle_return () {
 	cycle_applykont(a);
 	return 0;
     }
-    */
 
     public void cycle () {
 	if (c == null) {
@@ -160,13 +168,26 @@ public class QSmachine {
 	} else if (c.isSymbol()) {
 	    // evaluate as variable.
 	    a = e.resolve(c.asSym(), true);
-	    // cycle_return();
+	    cycle_return();
 	} else {
 	    // resolve to self.
 	    a = c;
-//	    cycle_return();
+	    cycle_return();
 	}
 
+    }
+
+
+
+    public String toString () {
+	StringBuilder ss = new StringBuilder();
+	ss.append("MACHINE{\n");
+	ss.append(" C="+c+"\n");
+	ss.append(" E="+e+"\n");
+	ss.append(" K="+k+"\n");
+	ss.append(" A="+a+"\n");
+	ss.append("}\n");
+	return ss.toString();
     }
 };
 
