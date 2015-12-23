@@ -77,6 +77,7 @@ public class TestMachine
 
 	System.out.println(machine);
 
+
 	System.out.println("# executing list:(__boolean_p__ true)");
 	machine.reset();
 	qsobj = QSpair.QSlist.make(machine.primitives.boolean_p, QSobj.make(true));
@@ -98,6 +99,7 @@ public class TestMachine
 	machine.cycle();
 	System.out.println("a=" + machine.A());
 
+
 	System.out.println("# executing list:(__lambda__ (x) 99)");
 	machine.reset();
 	QSpair parmlist = QSpair.QSlist.make(QSobj.intern("x"));
@@ -107,5 +109,27 @@ public class TestMachine
 	machine.cycle();
 	System.out.println("a=" + machine.A());
 
+
+	System.out.println("# executing list:(if true 17 42)");
+	machine.reset();
+	QSobj testing = QSobj.make(true);
+	QSobj cTRUE = QSobj.make(17);
+	QSobj cFALSE = QSobj.make(42);
+	qsobj = QSpair.QSlist.make(QSobj.intern("if"), testing, cTRUE, cFALSE);
+	machine.setC(qsobj);
+	machine.cycle();
+	machine.cycle();
+	machine.cycle();
+	System.out.println("a=" + machine.A());
+
+	System.out.println("# executing list:(if false 17 42)");
+	machine.reset();
+	testing = QSobj.make(false);
+	qsobj = QSpair.QSlist.make(QSobj.intern("if"), testing, cTRUE, cFALSE);
+	machine.setC(qsobj);
+	machine.cycle();
+	machine.cycle();
+	machine.cycle();
+	System.out.println("a=" + machine.A());
     }
 }

@@ -817,6 +817,18 @@ public class QSmachine {
 	};
 	class rule_if implements RuleHandler {
 	    public int handle (QSpair arglist) {
+		// arglist <- ( testing consequent alternate )
+		// arglist <- ( testing consequent )
+		QSobj testing = QSpair.QSlist.nth(arglist, 0);
+		QSobj consequent = QSpair.QSlist.nth(arglist, 1);
+		QSobj alternate = QSpair.QSlist.nth(arglist, 2);  // null if short, is fine.
+		QSenv env = E();
+		QScontinuation future = K();
+		QScontinuation selk = new QSselk(consequent, alternate, env, future);
+		// First, evaluate the testing condition.
+		setC(testing);
+		// Then after evaluation, pick one branch of 'if'.
+		setK(selk);
 		return 0;
 	    };
 	};

@@ -909,7 +909,6 @@ class QSselk extends QScontinuation {
 
     public int specific_applykont (QSmachine machine)
     {
-	System.out.println("Kont.sel");
 	// Depending on current value of 'A', move up kcqt or kalt.
 	QSobj a = machine.A();
 	if (QSobj.booleanp(a) && (a.asBool().Boolean() == false))
