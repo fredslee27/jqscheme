@@ -190,7 +190,7 @@ class QSbool extends QSobj {
     public QSbool (boolean initb) { b = initb; }
     public QSbool (int initb) { b = (initb != 0); }
     public Boolean Boolean () { return new Boolean(b); }
-    @Override public String repr () { return (b ? "#t" : "f"); }
+    @Override public String repr () { return (b ? "#t" : "#f"); }
 
     static public boolean p (QSobj x) { return ((x != null) && (x instanceof QSbool)); }
     static public QSbool make (boolean b) { return new QSbool(b); }
@@ -301,29 +301,11 @@ class QSvec extends QSobj {
 
 
 class QSprim extends QSobj implements IQSprimitive {
-    /*
-    static QSprimreg primreg = new QSprimreg();
-
-    QSmachine machine;
-    IQSprimitive primImpl;
-
-    public QSprim () { machine = null; }
-    public QSprim (QSmachine mach) { machine = mach; primImpl = null; }
-    public QSprim (QSmachine mach, IQSprimitive prim) { machine = mach; primImpl = prim; }
-    //public QSobj apply (QSpair arglist) { return null; }
-    //public QSobj apply (QSpair arglist) { return primImpl.apply(machine, arglist); }
-    */
-
-
-// this will probably go away later as uniqueness of all instances and liveness-traceability are now inherent.
-//    static QSprimreg primreg = new QSprimreg();
-
     QSmachine machine;
 
     public QSprim () { this(null); }
     public QSprim (QSmachine mach)
     {
-//	primreg.install(this);
 	machine = mach;
     }
 
@@ -332,8 +314,6 @@ class QSprim extends QSobj implements IQSprimitive {
 
     static public boolean p (QSobj x) { return ((x != null) && (x instanceof QSprim)); }
     static public QSobj apply (QSprim prim, QSpair arglist) { return prim.apply(arglist); }
-//    static private int install (IQSprimitive prim) { return primreg.install(prim); }
-//    static public IQSprimitive get (int primid) { return primreg.get(primid); }
 };
 
 

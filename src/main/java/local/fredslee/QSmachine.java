@@ -22,16 +22,6 @@ public class QSmachine {
     QSobj k;  // kontinuation
     QSobj a;  // answer
 
-    class MachinePrimitive implements IQSprimitive {
-	/*
-	public QSobj apply (QSmachine machine, QSpair arglist) {
-	    return null;
-	};
-	*/
-	public QSobj apply (QSpair arglist) {
-	    return null;
-	};
-    };
     class Primitives {
 	class qs_crash extends QSprim {
 	    @Override public QSobj apply (QSpair arglist) {
@@ -55,44 +45,29 @@ public class QSmachine {
 		return null;
 	    }
 	};
+	class qs_null_p extends QSprim {
+	    @Override public QSobj apply (QSpair arglist) {
+		QSobj a0 = QSpair.QSlist.nth(arglist, 0);
+		QSobj ans = QSobj.make( QSobj.nullp(a0) );
+		setA(ans);
+		return null;
+	    };
+	};
 
 	QSprim crash;
 	QSprim halt;
 	QSprim dump;
+	QSprim null_p;
 	// omg, so much redundancy...
 	public Primitives () {
 	    crash = new qs_crash();
 	    halt = new qs_halt();
 	    dump = new qs_dump();
+	    null_p = new qs_null_p();
 	}
     };
     Primitives primitives;
 
-/*
-  public QSmachine () {
-    if (prims == null)
-      {
-        prims = new ArrayList<Object>();
-        prims.add(null);  // reserve 0.
-      }
-  }
-
-  public QSobj C() { return c; }
-  public QSobj E() { return e; }
-  public QSobj S() { return s; }
-  public QSobj K() { return k; }
-
-  public QSobj newPrimitive (Object x) {
-    int primid = prims.size();
-    //QSprimitive primobj = new QSprimitive(primid);
-    QSprim primobj = new QSprim(primid);
-    prims.add(primobj);
-    //QSobj retval = new QSobj(primobj);
-    //QSobj retval = QSobj.make(primobj);
-    QSobj retval = primobj;
-    return retval;
-  }
-*/
     public QSmachine () {
 	c = null;
 	e = null;
@@ -108,6 +83,7 @@ public class QSmachine {
     public void setE (QSenv val) { e = val; }
     public void setS (QSobj val) { s = val; }
     public void setK (QSobj val) { k = val; }
+    public void setA (QSobj val) { a = val; }
 
     public QSobj C () { return c; }
     public QSenv E () { return e; }

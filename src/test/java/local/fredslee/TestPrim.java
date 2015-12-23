@@ -10,8 +10,6 @@ import junit.framework.TestSuite;
 public class TestPrim
     extends TestCase
 {
-    QSprimreg primreg;
-
     /**
      * Create the test case
      *
@@ -20,8 +18,6 @@ public class TestPrim
     public TestPrim (String testName)
     {
         super( testName );
-	primreg = new QSprimreg();
-	//primreg.install_base();
     }
 
     /**
@@ -47,7 +43,7 @@ public class TestPrim
         //assertTrue( true );
 	System.out.println("Testing prims");
 
-	QSobj qsobj;
+	QSobj qsobj, ans;
 	String repr, expect;
 
 	System.out.println("Direct invoke dump");
@@ -55,13 +51,12 @@ public class TestPrim
 	QSmachine machine = new QSmachine();
 	machine.primitives.dump.apply(QSobj.cons(qsobj, null));
 
-/*
-	System.out.println("len: " + primreg.primlist.size());
-	Object prim = primreg.get(1);
-	System.out.println("prim[0]=" + prim);
+	machine.primitives.null_p.apply(QSobj.cons(qsobj, null));
+	ans = machine.A();
+	System.out.println("ans = " + ans);
 
-	prim = primreg.lookup(qs_crash);
-	System.out.println("prim[qs_crash]=" + prim);
-	*/
+	machine.primitives.null_p.apply(QSobj.cons(null, null));
+	ans = machine.A();
+	System.out.println("ans = " + ans);
     }
 }
