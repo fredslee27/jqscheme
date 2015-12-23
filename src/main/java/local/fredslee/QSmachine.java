@@ -797,13 +797,11 @@ public class QSmachine {
 	class rule_lambda implements RuleHandler {
 	    public int handle (QSpair arglist) {
 		// arglist <- ( parameters:list . body:list )
-		QSobj parmlist;
-		QSobj body;
-		QSenv env;
-
-		parmlist = (QSpair)(arglist.nth(0));
-		body = (QSpair)(arglist.cdr());
-		env = E();
+		QSpair parmlist = (QSpair)(arglist.car());
+		QSobj body = (QSpair)(arglist.cdr());
+		QSenv env = E();
+		QSobj ans = QSobj.lambda(parmlist, body, env);
+		setA(ans);
 		return 0;
 	    };
 	};

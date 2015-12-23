@@ -316,13 +316,16 @@ class QSprim extends QSobj implements IQSprimitive {
     }
 
     public QSobj apply (QSpair arglist) { return null; }
+    @Override public String repr () throws Exception { return "#<QSprim " + this.getClass().getName() + ">"; }
 
 
     static public boolean p (QSobj x) { return ((x != null) && (x instanceof QSprim)); }
     static public QSobj apply (QSprim prim, QSpair arglist) { return prim.apply(arglist); }
+
 };
 
 
+// closure.
 class QSproc extends QSobj {
     QSpair parm;  // formal parameter list.
     QSobj body;  // could be a list or an atom.
@@ -338,13 +341,17 @@ class QSproc extends QSobj {
     public QSobj getBody () { return body; }
     public QSenv getEnv () { return env; }
 
+    @Override public String repr ()
+    {
+	return "#<procedure : " + QSpair.QSlist.length(parm) + ">";
+    }
+
 
     static public boolean p (QSobj x) { return ((x != null) && (x instanceof QSproc)); }
     static QSproc make (QSpair parm, QSobj body, QSenv env)
     {
 	return new QSproc(parm, body, env);
     }
-
 };
 
 
@@ -497,7 +504,7 @@ class QSpair extends QSobj {
     public QSobj cdr () { return cdr(this); }
     public void setcar (QSobj v) { setcar(this, v); }
     public void setcdr (QSobj v) { setcdr(this, v); }
-    @Override public String toString () {
+    @Override public String repr () {
 	StringBuilder temp = new StringBuilder();
 	temp.append("(");
 	QSobj iter = this;
@@ -1052,7 +1059,7 @@ class QSenv extends QSobj {
 	}
 	return null;
     }
-    @Override public String toString ()
+    @Override public String /*toString*/repr ()
     {
 	StringBuilder ss = new StringBuilder();
 	ss.append("(");

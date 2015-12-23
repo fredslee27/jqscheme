@@ -98,5 +98,14 @@ public class TestMachine
 	machine.cycle();
 	System.out.println("a=" + machine.A());
 
+	System.out.println("# executing list:(__lambda__ (x) 99)");
+	machine.reset();
+	QSpair parmlist = QSpair.QSlist.make(QSobj.intern("x"));
+	//QSpair body = QSpair.QSlist.make(QSobj.make(99));
+	qsobj = QSpair.QSlist.make(QSobj.intern("lambda"), parmlist, QSobj.make(99));
+	machine.setC(qsobj);
+	machine.cycle();
+	System.out.println("a=" + machine.A());
+
     }
 }
