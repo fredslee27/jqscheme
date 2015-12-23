@@ -32,7 +32,8 @@ interface IQSobj {
 };
 
 interface IQSprimitive {
-    public QSobj apply (QSobj arglist);
+    public QSobj apply (QSpair arglist);
+    //public QSobj apply (QSmachine machine, QSobj arglist);
 };
 
 class QSobj extends Object implements IQSobj {
@@ -299,15 +300,47 @@ class QSvec extends QSobj {
 }
 
 
-class QSprim extends QSobj {
+class QSprim extends QSobj implements IQSprimitive {
+    /*
     static QSprimreg primreg = new QSprimreg();
 
+    QSmachine machine;
+    IQSprimitive primImpl;
+
+    public QSprim () { machine = null; }
+    public QSprim (QSmachine mach) { machine = mach; primImpl = null; }
+    public QSprim (QSmachine mach, IQSprimitive prim) { machine = mach; primImpl = prim; }
+    //public QSobj apply (QSpair arglist) { return null; }
+    //public QSobj apply (QSpair arglist) { return primImpl.apply(machine, arglist); }
+    */
+
+
+// this will probably go away later as uniqueness of all instances and liveness-traceability are now inherent.
+//    static QSprimreg primreg = new QSprimreg();
+
+    QSmachine machine;
+
+    public QSprim () { this(null); }
+    public QSprim (QSmachine mach)
+    {
+//	primreg.install(this);
+	machine = mach;
+    }
+
+    public QSobj apply (QSpair arglist) { return null; }
+
+
     static public boolean p (QSobj x) { return ((x != null) && (x instanceof QSprim)); }
+    static public QSobj apply (QSprim prim, QSpair arglist) { return prim.apply(arglist); }
+//    static private int install (IQSprimitive prim) { return primreg.install(prim); }
+//    static public IQSprimitive get (int primid) { return primreg.get(primid); }
 };
+
 
 class QSproc extends QSobj {
     static public boolean p (QSobj x) { return ((x != null) && (x instanceof QSproc)); }
 };
+
 
 class QSpair extends QSobj {
     // Guard value to let car and cdr on non-pair return recursible value.
@@ -704,8 +737,6 @@ class QSenv extends QSobj {
     public static class RawEnv extends ArrayList< TreeMap<QSsym,QSobj> > { }
     public static QSobj blackhole = new QSobj();
     ArrayList< TreeMap<QSsym,QSobj> > env;
-//    public static ArrayList< TreeMap<QSsym,QSobj> > standard = build_stdenv(6);
-    //QSobj envroot;
 
     public QSenv () {
 	env = new ArrayList< TreeMap<QSsym,QSobj> >();
@@ -713,7 +744,14 @@ class QSenv extends QSobj {
 	//envroot = initenv
     }
     public QSenv (QSenv closure) {
-	env = (ArrayList< TreeMap<QSsym,QSobj> >)closure.env.clone();
+	if (closure != null)
+	{
+	    env = new ArrayList< TreeMap<QSsym,QSobj> >(closure.env);
+	}
+	else
+	{
+	    env = new ArrayList< TreeMap<QSsym,QSobj> >();
+	}
 	newframe();
     }
     public TreeMap<QSsym,QSobj> newframe ()

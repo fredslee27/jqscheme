@@ -22,6 +22,52 @@ public class QSmachine {
     QSobj k;  // kontinuation
     QSobj a;  // answer
 
+    class MachinePrimitive implements IQSprimitive {
+	/*
+	public QSobj apply (QSmachine machine, QSpair arglist) {
+	    return null;
+	};
+	*/
+	public QSobj apply (QSpair arglist) {
+	    return null;
+	};
+    };
+    class Primitives {
+	class qs_crash extends QSprim {
+	    @Override public QSobj apply (QSpair arglist) {
+		System.out.println("*** Crashing");
+		System.exit(1);
+		return null;
+	    }
+	};
+	class qs_halt extends QSprim {
+	    @Override public QSobj apply (QSpair arglist) {
+		setK(null);
+		return null;
+	    }
+	};
+	class qs_dump extends QSprim {
+	    @Override public QSobj apply (QSpair arglist) {
+		System.out.println("DUMP:");
+		String repr = (arglist.car()).dump();
+		System.out.println(repr);
+		System.out.println(".");
+		return null;
+	    }
+	};
+
+	QSprim crash;
+	QSprim halt;
+	QSprim dump;
+	// omg, so much redundancy...
+	public Primitives () {
+	    crash = new qs_crash();
+	    halt = new qs_halt();
+	    dump = new qs_dump();
+	}
+    };
+    Primitives primitives;
+
 /*
   public QSmachine () {
     if (prims == null)
@@ -53,8 +99,10 @@ public class QSmachine {
 	s = null;
 	k = null;
 	a = null;
+	primitives = new Primitives();
     }
 
+    public QSmachine getMachine () { return this; }
     public void setC (QSobj val) { c = val; }
     public void setE (QSobj val) { e = (QSenv)val; }
     public void setE (QSenv val) { e = val; }
