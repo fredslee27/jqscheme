@@ -50,6 +50,8 @@ public class TestPrim
 	qsobj = QSobj.make(94);
 	QSmachine machine = new QSmachine();
 	machine.primitives.dump.apply(QSobj.cons(qsobj, null));
+	ans = machine.A();
+	System.out.println("ans = " + ans);
 
 	machine.primitives.null_p.apply(QSobj.cons(qsobj, null));
 	ans = machine.A();

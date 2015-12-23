@@ -673,17 +673,32 @@ class QScomplex extends QSnumber {
 
 
 
-class QScontinuation extends QSobj {
+abstract class QScontinuation extends QSobj {
+    //QSobj control;
+    QSenv env;
+    QScontinuation kont;
+
     QSobj v, e, k;
     public boolean isContinuation () { return true; }
     public QScontinuation (QSobj cv, QSobj ce, QSobj ck) {
 	v = cv; e = ce; k = ck;
     }
     public QScontinuation () { v = e = k = null; }
-    public QSobj V () { return v; }
-    public QSobj E () { return e; }
-    public QSobj K () { return k; }
+    public QScontinuation (/*QSobj c, */QSenv e, QScontinuation k)
+    {
+	//control = c;
+	env = e;
+	kont = k;
+    }
+    //public QSobj V () { return v; }
+    //public QSobj E () { return e; }
+    //public QSobj K () { return k; }
+    //public QSobj C () { return control; }
+    //public QSobj C () { return null; }
+    public QSenv E () { return env; }
+    public QScontinuation K () { return kont; }
 
+/*
     public class halt extends QScontinuation { };
     public class letk extends QScontinuation {
 	public boolean isLet() { return true; }
@@ -694,6 +709,7 @@ class QScontinuation extends QSobj {
     public class selk extends QScontinuation {
 	public boolean isSel() { return true; }
     };
+    */
 
     public boolean isHalt () { return true; }
     public boolean isLet () { return false; }
@@ -701,9 +717,175 @@ class QScontinuation extends QSobj {
     public boolean isSel () { return false; }
 
     static public boolean p (QSobj x) { return ((x != null) && (x instanceof QScontinuation)); }
+    static public QScontinuation haltk ()
+    {
+	return new QShaltk();
+    }
+    static public QScontinuation letk (QSsym s, QSobj v, QSenv e, QScontinuation k)
+    {
+	return new QSletk(s,v,e,k);
+    }
+    static public QScontinuation selk (QSobj t, QSobj f, QSenv e, QScontinuation k)
+    {
+	return new QSselk(t,f,e,k);
+    }
+    static public QScontinuation callk (QSpair pending, QSpair ready, QSenv e, QScontinuation k)
+    {
+	return new QScallk(pending,ready,e,k);
+    }
+    public int applykont (QSmachine machine)
+    {
+	int retval;
+	retval = specific_applykont(machine);
+	if (retval > 0)
+	{
+	    // advance kontinuation.
+	    machine.setK(kont);
+	}
+	return retval;
+    }
+    public int specific_applykont (QSmachine machine)
+    {
+	System.out.println("Invalid continuation.  Halting.");
+	machine.setK(null);
+	return 1;
+    }
+
+/*
     static public QScontinuation make (QSobj v, QSobj e, QSobj k)
     {
 	return new QScontinuation(v,e,k);
+    }
+*/
+    static public int applykont (QSmachine machine, QScontinuation k)
+    {
+	return k.applykont(machine);
+    }
+};
+
+// Continuation variant, halt (stop machine).
+class QShaltk extends QScontinuation {
+    public QShaltk () { }
+
+    public int specific_applykont (QSmachine machine)
+    {
+	machine.setK(null);
+	return 1;
+    }
+};
+
+// Continuation variant, letk (evaluate and store to variable).
+class QSletk extends QScontinuation {
+    // Variable 'var' to be assigned the value of evaluating 'exp' in the context of environment 'env' with pending continuation k.
+    QSsym ksym;
+    QSobj kexp;
+
+    public QSletk (QSsym sym, QSobj exp, QSenv env, QScontinuation k)
+    {
+	super(env, k);
+	ksym = sym;
+	kexp = exp;
+    };
+
+    // apply continuation onto machine.
+    public int specific_applykont (QSmachine machine)
+    {
+	// 'A' holds value to be assigned to variable named 'ksym'.
+	// Then move up E into machine.
+	if (! QSobj.nullp(ksym))
+	{
+	    QSenv kenv = E();
+	    if (kenv.exists(ksym, false))
+	    {
+		kenv.freshen(ksym);
+	    }
+	    QSobj ans = machine.A();
+	    kenv.bind(ksym, ans);
+	    machine.setE(E());
+	}
+	else
+	{
+	    machine.setE(E());
+	}
+	machine.setC(kexp);
+	return 1;
+    }
+};
+
+// Continuation variant, callk (evaluate and prepare procedure call).
+class QScallk extends QScontinuation {
+    QSpair kpend;
+    QSpair kready;
+    public QScallk (QSpair pending, QSpair ready, QSenv env, QScontinuation k)
+    {
+	super(env, k);
+	kpend = pending;
+	kready = ready;
+    }
+
+    public int specific_applykont (QSmachine machine)
+    {
+	// 'A' holds value to be added to ready argument list 'kready'.
+	// Then load 'C' with the next element of pending argument list 'kpend'.
+	QSobj ans = machine.A();
+	QSpair nextarg = QSobj.cons(ans, null);
+	// (list-append ready ans)
+	if (QSobj.nullp(kready))
+	{
+	    kready = nextarg;
+	}
+	else
+	{
+	    QSpair eor = QSpair.QSlist.end(kready);
+	    kready.setcdr(nextarg);
+	}
+	machine.setE(E());
+	if (QSobj.nullp(kpend))
+	{
+	    // no more pending; all of 'kready' is the full call.
+	    machine.setC(kready);
+	}
+	else
+	{
+	    // pop pending to C.
+	    QSobj aexp = kpend.car();
+	    kpend = (QSpair)(kpend.cdr());
+	    machine.setC(aexp);
+	    // do not advance continuation; violates lambda notions. oh well.
+	    machine.setK(this);
+	    return 0;
+	}
+	return 1;
+    }
+};
+
+// Continuation variant, selk (select/branch on machine.A)
+class QSselk extends QScontinuation {
+    QSobj kcqt;  // consequent, true branch.
+    QSobj kalt;  // alternate, false branch.
+    public QSselk (QSobj cTRUE, QSobj cFALSE, QSenv env, QScontinuation k)
+    {
+	super(env, k);
+	kcqt = cTRUE;
+	kalt = cFALSE;
+    }
+
+    public int specific_applykont (QSmachine machine)
+    {
+	// Depending on current value of 'A', move up kcqt or kalt.
+	QSobj a = machine.A();
+	if (QSobj.booleanp(a) && (a.asBool().Boolean() == false))
+	{
+	    // load kalt.
+	    machine.setC(kalt);
+	}
+	else
+	{
+	    // load kcqt.
+	    machine.setC(kcqt);
+	}
+	machine.setE(E());
+	return 1;
     }
 };
 
@@ -739,6 +921,19 @@ class QSenv extends QSobj {
 	TreeMap<QSsym,QSobj> frame = new TreeMap<QSsym,QSobj>();
 	env.add(0, frame);
 	return frame;
+    }
+    // if variable name exists in frame; optional recurse down older frames.
+    public boolean exists (QSsym sym, boolean recurse)
+    {
+	for (TreeMap<QSsym,QSobj> frameiter : env) {
+	    if (frameiter.containsKey(sym)) {
+		return true;
+	    }
+	    if (! recurse) {
+		return false;
+	    }
+	}
+	return false;
     }
     // Returns bound value of symbol.
     public QSobj resolve (QSsym sym, boolean recurse)
@@ -778,6 +973,7 @@ class QSenv extends QSobj {
 	frame.put(sym, blackhole);
 	return null;
     }
+    // Change value of existing variable name.
     public QSobj bind (QSsym sym, QSobj val)
     {
 	TreeMap<QSsym,QSobj> frame;
