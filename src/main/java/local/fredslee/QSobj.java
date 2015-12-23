@@ -399,7 +399,7 @@ class QSpair extends QSobj {
 	    QSpair iter = root;
 	    if (iter == null)
 		return null;
-	    while ((iter.cdr() != null) && QSpair.p(iter)) {
+	    while (QSpair.p(iter) && (iter.cdr() != null)) {
 		iter = (QSpair)(iter.cdr());
 	    }
 	    return iter;
@@ -769,6 +769,7 @@ class QShaltk extends QScontinuation {
 
     public int specific_applykont (QSmachine machine)
     {
+	System.out.println("Kont.halt");
 	machine.setK(null);
 	return 1;
     }
@@ -795,13 +796,15 @@ class QSletk extends QScontinuation {
 	if (! QSobj.nullp(ksym))
 	{
 	    QSenv kenv = E();
-	    if (kenv.exists(ksym, false))
+	    if (kenv == null)
+		kenv = new QSenv();
+	    if (! kenv.exists(ksym, false))
 	    {
 		kenv.freshen(ksym);
 	    }
 	    QSobj ans = machine.A();
 	    kenv.bind(ksym, ans);
-	    machine.setE(E());
+	    machine.setE(kenv);
 	}
 	else
 	{
@@ -825,6 +828,7 @@ class QScallk extends QScontinuation {
 
     public int specific_applykont (QSmachine machine)
     {
+	System.out.println("Kont.call");
 	// 'A' holds value to be added to ready argument list 'kready'.
 	// Then load 'C' with the next element of pending argument list 'kpend'.
 	QSobj ans = machine.A();
@@ -837,7 +841,7 @@ class QScallk extends QScontinuation {
 	else
 	{
 	    QSpair eor = QSpair.QSlist.end(kready);
-	    kready.setcdr(nextarg);
+	    if (eor != null) eor.setcdr(nextarg);
 	}
 	machine.setE(E());
 	if (QSobj.nullp(kpend))
@@ -872,6 +876,7 @@ class QSselk extends QScontinuation {
 
     public int specific_applykont (QSmachine machine)
     {
+	System.out.println("Kont.sel");
 	// Depending on current value of 'A', move up kcqt or kalt.
 	QSobj a = machine.A();
 	if (QSobj.booleanp(a) && (a.asBool().Boolean() == false))
@@ -926,6 +931,8 @@ class QSenv extends QSobj {
     public boolean exists (QSsym sym, boolean recurse)
     {
 	for (TreeMap<QSsym,QSobj> frameiter : env) {
+	    if (frameiter == null)
+		continue;
 	    if (frameiter.containsKey(sym)) {
 		return true;
 	    }

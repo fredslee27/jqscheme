@@ -19,7 +19,8 @@ public class QSmachine {
     //QSobj e;  // environment
     QSenv e;  // environment
     QSobj s;  // store
-    QSobj k;  // kontinuation
+    //QSobj k;  // kontinuation
+    QScontinuation k;  // kontinuation
     QSobj a;  // answer
 
     class Primitives {
@@ -82,13 +83,14 @@ public class QSmachine {
     public void setE (QSobj val) { e = (QSenv)val; }
     public void setE (QSenv val) { e = val; }
     public void setS (QSobj val) { s = val; }
-    public void setK (QSobj val) { k = val; }
+    public void setK (QSobj val) { k = (QScontinuation)val; }
+    public void setK (QScontinuation val) { k = val; }
     public void setA (QSobj val) { a = val; }
 
     public QSobj C () { return c; }
     public QSenv E () { return e; }
     public QSobj S () { return s; }
-    public QSobj K () { return k; }
+    public QScontinuation K () { return k; }
     public QSobj A () { return a; }
 
     public void reset ()
@@ -101,6 +103,16 @@ public class QSmachine {
 	a = null;
     }
 
+    // implicit apply kontinuation.
+    public int applyK ()
+    {
+	int retval = 0;
+	if (k instanceof QScontinuation)
+	{
+	    retval = k.applykont(this);
+	}
+	return retval;
+    }
 /*
     public int applykont (QScontinuation kont, QSobj ans) {
 	if (kont == null) {
