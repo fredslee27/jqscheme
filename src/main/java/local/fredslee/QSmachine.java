@@ -791,6 +791,37 @@ public class QSmachine {
 	};
 	class rule_define implements RuleHandler {
 	    public int handle (QSpair arglist) {
+		// arglist <- ( sym value )
+		// arglist <- ( ( sym . parmlist ) body )
+		QSobj a0 = QSpair.QSlist.nth(arglist, 0);
+		QSobj a1 = QSpair.QSlist.nth(arglist, 1);
+
+		if (QSobj.pairp(a0))
+		{
+		    // (define (sym . parmlist) body)
+		    QSpair parenform = (QSpair)a0;
+		    QSsym sym = (QSsym)(parenform.car());
+		    QSpair parm = (QSpair)(parenform.cdr());
+		    QSobj val = QSobj.lambda(parm, a1, E());
+		    QScontinuation kont = K();
+		    //QSobj val = QSpair.list(QSobj.intern("lambda"), parm, body);
+		    if (! E().exists(sym, false))
+		    {
+			E().freshen(sym);
+		    }
+		    QScontinuation k = new QSletk(sym, null, E(), K());
+		    setC(val);  // bare lambda evaluates to self, then store into sym.
+		    setK(k);
+		}
+		else
+		{
+		    // (define sym value)
+		    QSsym sym = (QSsym)a0;
+		    QScontinuation k = new QSletk(sym, null, E(), K());
+		    E().freshen(sym);
+		    setC(a1);  // evaluate the expression, then storeinto sym.
+		    setK(k);
+		}
 		return 0;
 	    };
 	};
@@ -901,9 +932,11 @@ public class QSmachine {
     {
 	c = null;
 	//e = QSenv.standard();
-	e = null;
+	//e = null;
+	e = new QSenv();
 	s = null;
 	k = null;
+	//k = new QShaltk();
 	a = null;
     }
 
@@ -951,8 +984,13 @@ public class QSmachine {
     public int cycle_applykont (QSobj ans) {
 	//return applykont((QScontinuation)k, ans);
 	int retval = 0;
-	if (k != null)
+	if (k == null)
 	{
+	    halt = true;
+	}
+	else
+	{
+	    // TODO: explicit answer argument.
 	    retval = k.applykont(this);
 	}
 	return retval;
@@ -1008,7 +1046,9 @@ public class QSmachine {
     {
 	if (halt)
 	    return;
-	if (c == null) {
+	if (c == null)
+	{
+	    cycle_return();
 	    return;
 	}
 	if (c.isPair()) {
@@ -1023,7 +1063,19 @@ public class QSmachine {
 	    a = c;
 	    cycle_return();
 	}
+    }
 
+    void limited_run (int lim)
+    {
+	int i;
+	halt = false;
+	for (i = 0; (!halt) && (i < lim); i++)
+	{
+	    System.out.println(this);
+	    cycle();
+	}
+	System.out.println(this);
+	System.out.println("HALT after " + i + " cycles");
     }
 
 

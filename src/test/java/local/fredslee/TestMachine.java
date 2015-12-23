@@ -131,5 +131,14 @@ public class TestMachine
 	machine.cycle();
 	machine.cycle();
 	System.out.println("a=" + machine.A());
+
+
+	System.out.println("# executing list:(define x 14)");
+	machine.reset();
+	qsobj = QSpair.QSlist.make(QSobj.intern("define"), QSobj.intern("x"), QSobj.make(14));
+	machine.setC(qsobj);
+	machine.limited_run(10);
+	System.out.println("a=" + machine.A());
+	System.out.println(machine);
     }
 }
