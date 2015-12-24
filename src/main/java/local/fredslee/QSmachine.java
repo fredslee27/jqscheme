@@ -1064,7 +1064,19 @@ public class QSmachine {
 	{
 	    // interpret as procedure call.
 	    // cycle_proc()
-	    cycle_return();
+	    QSpair args = (QSpair)rest;
+	    QSobj first = null;
+	    if (args != null) {
+		first = args.car();
+		rest = (QSpair)(args.cdr());
+	    } else {
+		first = null;
+		rest = null;
+	    }
+	    QScontinuation k = new QScallk(rest, (QSpair)null, E(), K());
+	    setC(first);
+	    setE(E());
+	    setK(k);
 	}
 	return retval;
     };
@@ -1079,12 +1091,9 @@ public class QSmachine {
     {
 	if (halt)
 	    return;
-	if (c == null)
-	{
+	if (c == null) {
 	    cycle_return();
-	    return;
-	}
-	if (c.isPair()) {
+	} else if (c.isPair()) {
 	    // evaluate as code.
 	    cycle_pair();
 	} else if (c.isSymbol()) {
