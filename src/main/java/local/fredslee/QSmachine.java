@@ -951,7 +951,11 @@ public class QSmachine {
     public void setE (QSenv val) { e = val; }
     public void setS (QSobj val) { s = val; }
     public void setK (QSobj val) { k = (QScontinuation)val; }
-    public void setK (QScontinuation val) { k = val; }
+    public void setK (QScontinuation val)
+    {
+	System.out.println("Setting K = " + k);
+	k = val;
+    }
     public void setA (QSobj val) { a = val; }
 
     public QSobj C () { return c; }
@@ -979,6 +983,7 @@ public class QSmachine {
 	if (k instanceof QScontinuation)
 	{
 	    retval = k.applykont(this);
+	    setK(k.K());
 	}
 	return retval;
     }
@@ -1030,6 +1035,7 @@ public class QSmachine {
 
     public int cycle_pair ()
     {
+	System.out.println("cycle_pair");
 	int retval = 0;
 	QSpair arglist = (QSpair)c;
 	QSobj head = arglist.car();
@@ -1039,22 +1045,27 @@ public class QSmachine {
 	    specialrule = specialruleset.get((QSsym)head);
 	if (specialrule != null)
 	{
+	    System.out.println("cycle_pair.special_rule");
 	    retval = specialrule.handle(rest);
 	}
 	else if (QSobj.primp(head))
 	{
 	    // apply machine primitive.
+	    System.out.println("cycle_pair.primitive");
 	    QSprim prim = (QSprim)head;
 	    prim.apply(rest);
 	    retval = 0;
+	    cycle_return();
 	}
 	else if (QSobj.procp(head))
 	{
 	    // apply procedure.
 	    // cycle_applyproc();
+	    System.out.println("cycle_pair.proc");
 	}
 	else if (QSobj.continuationp(head))
 	{
+	    System.out.println("cycle_pair.kont");
 	    QSobj val = ((QSpair)(arglist.cdr())).car();
 	    // applykont(head, val);
 	    k = (QScontinuation)head;
@@ -1062,6 +1073,7 @@ public class QSmachine {
 	}
 	else
 	{
+	    System.out.println("cycle_pair.pair interpret");
 	    // interpret as procedure call.
 	    // cycle_proc()
 	    QSpair args = (QSpair)rest;

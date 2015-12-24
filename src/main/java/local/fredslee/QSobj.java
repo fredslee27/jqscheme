@@ -901,6 +901,8 @@ class QScallk extends QScontinuation {
 	}
 	return 1;
     }
+
+    @Override public String repr () { return "#<QScallk:" + kpend + ":" + kready + ":" + K() + ">"; }
 };
 
 // Continuation variant, selk (select/branch on machine.A)
