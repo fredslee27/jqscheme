@@ -711,12 +711,15 @@ abstract class QScontinuation extends QSobj {
     QSenv env;
     QScontinuation kont;
 
-    QSobj v, e, k;
+    //QSobj v, e, k;
     public boolean isContinuation () { return true; }
+    /*
     public QScontinuation (QSobj cv, QSobj ce, QSobj ck) {
 	v = cv; e = ce; k = ck;
     }
-    public QScontinuation () { v = e = k = null; }
+    */
+//    public QScontinuation () { v = e = k = null; }
+    public QScontinuation () { env = null; kont = null; }
     public QScontinuation (/*QSobj c, */QSenv e, QScontinuation k)
     {
 	//control = c;
@@ -731,6 +734,8 @@ abstract class QScontinuation extends QSobj {
     public QSenv E () { return env; }
     public QScontinuation K () { return kont; }
 
+    public void setE (QSenv ke) { env = ke; }
+    public void setK (QScontinuation kv) { kont = kv; }
 /*
     public class halt extends QScontinuation { };
     public class letk extends QScontinuation {
@@ -846,6 +851,8 @@ class QSletk extends QScontinuation {
 	machine.setC(kexp);
 	return 1;
     }
+
+    @Override public String repr () { return "#<QSletk:" + kexp + "::" + K() + ">"; }
 };
 
 // Continuation variant, callk (evaluate and prepare procedure call).

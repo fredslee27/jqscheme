@@ -140,5 +140,17 @@ public class TestMachine
 	machine.limited_run(10);
 	System.out.println("a=" + machine.A());
 	System.out.println(machine);
+
+	System.out.println("# executing list:(begin (dump 1) (dump 2) (dump 3))");
+	machine.reset();
+	QSobj p1 = QSpair.list(QSobj.intern("dump"), QSobj.make(1));
+	QSobj p2 = QSpair.list(QSobj.intern("dump"), QSobj.make(2));
+	QSobj p3 = QSpair.list(QSobj.intern("dump"), QSobj.make(3));
+	QSobj pp = QSpair.list(QSobj.intern("begin"), p1, p2, p3);
+	machine.setC(pp);
+	//for (int i = 0; i < 10; i++) { machine.cycle(); }
+	machine.limited_run(10);
+	System.out.println("a=" + machine.A());
+	System.out.println(machine);
     }
 }

@@ -779,6 +779,36 @@ public class QSmachine {
     };
     Primitives primitives;
 
+    // Helper function for begin, let, letrec.
+    // Returns a chain of continuations evaluating the given explist.
+    public QScontinuation build_sequence (QSpair explist, QSenv env, QScontinuation k0)
+    {
+	QScontinuation retval = null;
+	if (env == null) {
+	    env = E();
+	}
+	QSpair expiter;
+	QScontinuation kcurr = null, kprev = null;
+	for (expiter = explist; QSobj.pairp(expiter); expiter = (QSpair)(expiter.cdr()))
+	{
+	    QSobj exp = expiter.car();
+	    kcurr = new QSletk(null, exp, env, k0);
+	    System.out.println("chain " + kcurr);
+	    if (kprev == null)
+	    {
+		// first.
+		retval = kcurr;
+	    }
+	    else
+	    {
+		/* chain */
+		kprev.setK(kcurr);
+	    }
+	    kprev = kcurr;
+	}
+	return retval;
+    }
+
     /*
     Special Rules.
     Handles special forms, evaluating lists starting with a specific symbol.
@@ -817,7 +847,6 @@ public class QSmachine {
 		{
 		    // (define sym value)
 		    QSsym sym = (QSsym)a0;
-		    QScontinuation k = new QSletk(sym, null, E(), K());
 		    E().freshen(sym);
 		    setC(a1);  // evaluate the expression, then storeinto sym.
 		    setK(k);
@@ -870,6 +899,9 @@ public class QSmachine {
 	};
 	class rule_begin implements RuleHandler {
 	    public int handle (QSpair arglist) {
+		QScontinuation k = build_sequence((QSpair)(arglist.cdr()), E(), K());
+		setC(arglist.car());
+		setK(k);
 		return 0;
 	    };
 	};
@@ -1032,6 +1064,7 @@ public class QSmachine {
 	{
 	    // interpret as procedure call.
 	    // cycle_proc()
+	    cycle_return();
 	}
 	return retval;
     };
@@ -1085,7 +1118,7 @@ public class QSmachine {
     {
 	env.define(QSobj.intern("__qsprim:dump__"), primitives.dump);
     }
-    */
+*/
 
 
 
